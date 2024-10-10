@@ -1,0 +1,15 @@
+click
+click-aliases
+fastapi
+uvicorn[standard]
+watchdog
+azure-identity
+azure-storage-queue
+azure-data-tables
+azure-storage-blob
+azure-cognitiveservices-speech
+python-dotenv
+#semantic-kernel==1.8.0
+tiktoken
+pymongo
+python-multipart

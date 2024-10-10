@@ -1,0 +1,23 @@
+{
+  "name": "pdfapprover",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@pdfslick/solid": "^1.5.2",
+    "solid-js": "^1.8.20"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.47",
+    "tailwindcss": "^3.4.12",
+    "typescript": "^5.5.3",
+    "vite": "^5.4.1",
+    "vite-plugin-solid": "^2.10.2"
+  }
+}

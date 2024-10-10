@@ -1,0 +1,6 @@
+.env
+startazurestore.sh
+extract_data/
+azfuncs/
+audio/
+.venv

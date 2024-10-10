@@ -1,0 +1,53 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dpsiw"
+authors = [
+  { name="Alex Morales", email="am8850mia@gmail.com" },
+]
+description = "Distributed Intelligent Processing system (dpsiw)"
+readme = "README.md"
+requires-python = ">=3.9"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+  "click",
+  "fastapi",
+  "uvicorn[standard]",
+  "watchdog",
+  "azure-identity",
+  "azure-storage-queue",
+  "azure-data-tables",
+  "azure-storage-blob",
+  "azure-cognitiveservices-speech",
+  "python-dotenv",
+  "semantic-kernel==1.8.0",
+  "tiktoken"
+]
+dynamic = ["version"]
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.dynamic]
+version = {attr = "dpsiw.version.VERSION"}
+readme = {file = ["README.md"]}
+
+[tool.setuptools.packages.find]
+include = ["dpsiw*"]
+exclude = ["*.tests*"]
+namespaces = false
+
+[tool.setuptools.package-data]
+"dpsiw" = ["*.*"]
+
+[project.urls]
+"Homepage" = "https://github.com/am8850/zebra"
+
+[project.scripts]
+dpsiw = "dpsiw.cmd.root:main"
