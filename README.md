@@ -1,4 +1,4 @@
-# Zion MedFlow GenAI: Streamlining Healthcare with Intelligent Automation
+# ZionAI MedFlow: Streamlining Healthcare with Intelligent Automation
 
 Transform your medical practice with Zion MedFlow GenAI, an advanced workflow automation solution designed to make your clinic more efficient and patient-centric. This powerful system seamlessly integrates with your existing tools and processes to intelligently manage, process, and analyze critical patient data in real-time.
 
