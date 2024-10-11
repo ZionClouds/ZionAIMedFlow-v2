@@ -8,6 +8,8 @@ azure-storage-queue
 azure-data-tables
 azure-storage-blob
 azure-cognitiveservices-speech
+azure-servicebus
+aiohttp
 python-dotenv
 #semantic-kernel==1.8.0
 tiktoken
