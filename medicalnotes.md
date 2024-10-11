@@ -1,6 +1,6 @@
 # Medical notes
 
-## Diagram
+## Architecture Diagram
 
 ```mermaid
 graph LR
