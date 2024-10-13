@@ -54,6 +54,16 @@ def status():
     return {"status": 1}
 
 
+@app.delete("/truncate")
+def truncate_collect():
+    try:
+        mongo_service.collection.delete_many({})
+    except Exception as e:
+        logging.error(f"Error: {e}")
+        raise HTTPException(
+            status_code=500, detail="Something went wrong truncating the collection")
+
+
 @app.get("/notes/{id}", response_model=list[MDNotes])
 def get_notes(id: str):
     list = []
