@@ -48,8 +48,8 @@ class WorkerSB:
                             # NOTE: Dynamically instantiate the agent based on the message type
                             instance: Agent = eval(message.type)()
                             click.echo(f"Processing instance: {instance}")
-                            # if instance:
-                            #     instance.process(message)
+                            if instance:
+                                instance.process(message)
                         # except CompletedException as e:
                         #     logging.error(
                         #         f"Completed message with exception: {e.message}")
