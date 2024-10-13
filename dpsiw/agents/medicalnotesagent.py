@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 import click
 from openai import AzureOpenAI
 from dpsiw.constants import constants
+from dpsiw.exceptions import CompletedException
 from dpsiw.services.azureblob import AzureBlobContainer, get_blob_name, get_file_name_and_extension
 from dpsiw.services.azurespeech import AzureSTT, TranscribeOpts, Transcriber
 from dpsiw.services.fileservices import delete_file, read_text_file
@@ -10,7 +11,7 @@ from dpsiw.services.llmservice import LLMService
 from dpsiw.services.mgdatabase import MongoDBService, TranscriptionsRepository
 from dpsiw.services.settings import Settings, get_settings_instance
 from dpsiw.tools.gpttool import GPTMessage
-from dpsiw.workers.sbworker import CompletedException
+
 
 from .agent import Agent
 from dpsiw.messages.message import Message, LLMOpts
