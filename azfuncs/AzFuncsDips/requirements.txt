@@ -8,3 +8,5 @@ azure-identity
 azure-storage-queue
 pymongo
 pydantic
+azure-servicebus
+aiohttp
