@@ -15,23 +15,6 @@ from dpsiw.services.mockpysiciandata import init_mock_physician_data
 from dpsiw.workers.sbworker import WorkerSB
 from dpsiw.web.server import Server
 
-
-# region: Dependency Injection
-service_container: ServiceContainer = get_service_container_instance()
-
-# Get an instance of the settings
-settings: Settings = get_settings_instance()
-service_container['settings'] = settings
-
-# Get a queue client and service
-queue_client = azurequeue.AzureQueue.get_client(
-    queue_name=constants.DIPS_MESSAGES_QUEUE, connection_string=settings.queue_connection_string)
-queue_service = azurequeue.AzureQueue(queue_client)
-service_container[constants.SERVICE_MESSAGES_QUEUE] = queue_service
-
-
-# endregion: Dependency Injection
-
 # region: Commands
 
 
@@ -48,13 +31,6 @@ def cli():
     click.echo(logo)
     click.echo(click.style(
         "Distributed Processing System for Intelligent workloads\n", fg="green"))
-
-
-def create_table():
-    # table_client = TableManager.get_client()
-    # table_manager = TableManager(table_client)
-    # table_manager.create_table()
-    service_container.get('physician_repository').create_table()
 
 
 async def send_async(number):
