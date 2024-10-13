@@ -4,7 +4,6 @@ import click
 from click_aliases import ClickAliasedGroup
 from dpsiw.constants import *
 from dpsiw.services import azurequeue
-from dpsiw.services.azureblob import AzureBlobContainer
 from dpsiw.services.azureservicebus import get_azuresb_instance
 from dpsiw.services.mgdatabase import MongoDBService
 from dpsiw.services.mockdatagenerators import MockGenerator
