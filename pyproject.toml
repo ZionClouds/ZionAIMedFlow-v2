@@ -50,4 +50,4 @@ namespaces = false
 "Homepage" = "https://github.com/am8850/zebra"
 
 [project.scripts]
-dpsiw = "dpsiw.cmd.root:main"
+dpsiw = "dpsiw.cmd.root:cli"
