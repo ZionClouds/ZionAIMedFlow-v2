@@ -1,4 +1,5 @@
 from time import sleep
+import uuid
 
 from azure.storage.queue import QueueClient
 import azure.cognitiveservices.speech as speechsdk
@@ -145,7 +146,10 @@ class AzureSTT(Transcriber):
             # conversation_transcriber.transcribed.connect(
             #     conversation_transcriber_transcribed_cb)
             (_, file_ext) = get_file_name_and_extension(opts.file_path)
-            transcription_file_path = opts.file_path.replace(file_ext, ".txt")
+            # transcription_file_path = opts.file_path.replace(file_ext, ".txt")
+            # transcription_file_path = str(uuid.uuid4())[10:] + ".txt"
+            transcription_file_path = str(
+                uuid.uuid4()).upper().replace("-", '')[:10] + ".txt"
             handler = AzSpeechHandler(transcription_file_path)
             conversation_transcriber.transcribed.connect(
                 lambda evt: handler.transcriber(evt))
