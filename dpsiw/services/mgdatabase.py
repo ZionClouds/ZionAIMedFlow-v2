@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
+
 import click
 from pymongo import MongoClient
-
 from dpsiw.constants import constants
 from dpsiw.services.settings import get_settings_instance
 
