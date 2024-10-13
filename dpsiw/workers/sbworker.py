@@ -126,13 +126,21 @@ settings = get_settings_instance()
 settings = get_settings_instance()
 
 
+class CompletedException(Exception):
+    def __init__(self, message):
+        self.message = message
+        super().__init__(message)
+
+
 class AbandonedException(Exception):
     def __init__(self, message):
+        self.message = message
         super().__init__(message)
 
 
 class DeadLetteredException(Exception):
     def __init__(self, message):
+        self.message = message
         super().__init__(message)
 
 
@@ -148,7 +156,7 @@ class WorkerSB:
                 receiver = self.client.get_queue_receiver(
                     queue_name=settings.sb_queue_name)
                 async with receiver:
-                    received_msgs = await receiver.receive_messages(max_message_count=1, max_wait_time=5)
+                    received_msgs = await receiver.receive_messages(max_message_count=1, max_wait_time=1)
                     if not received_msgs:
                         await asyncio.sleep(2.5)
                         continue
@@ -171,11 +179,23 @@ class WorkerSB:
                             click.echo(f"Processing instance: {instance}")
                             if instance:
                                 instance.process(message)
+                        except CompletedException as e:
+                            logging.error(
+                                f"Completed message with exception: {e.message}")
+                            await receiver.complete_message(msg)
+                        except AbandonedException as e:
+                            logging.error(
+                                f"Abandoning the message {e.message}")
+                            await receiver.abandon_message(msg)
+                        except DeadLetteredException as e:
+                            logging.error(
+                                f"Deadlettering the message {e.message}")
+                            await receiver.dead_letter_message(msg)
                         except Exception as e:
-                            logging.ERROR("unable to instantiate type", e)
-                            receiver.dead_letter_message(msg)
+                            logging.error(f"Deadlettering with exception: {e}")
+                            await receiver.dead_letter_message(msg)
 
-                        receiver.complete_message(msg)
+                        await receiver.complete_message(msg)
 
     @staticmethod
     async def start(instances: int = 1, endless: bool = False):

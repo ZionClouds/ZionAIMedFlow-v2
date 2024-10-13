@@ -10,6 +10,7 @@ from dpsiw.services.llmservice import LLMService
 from dpsiw.services.mgdatabase import MongoDBService, TranscriptionsRepository
 from dpsiw.services.settings import Settings, get_settings_instance
 from dpsiw.tools.gpttool import GPTMessage
+from dpsiw.workers.sbworker import CompletedException
 
 from .agent import Agent
 from dpsiw.messages.message import Message, LLMOpts
@@ -135,17 +136,13 @@ Output format:
         self.message = message
 
         click.echo(click.style(
-            f"{datetime.now().timestamp()} Processing ", fg='yellow'), nl=False)
-        click.echo(click.style("Medical notes: ", fg='yellow', bold=True))
+            f"{datetime.now().isoformat()} : Processing Medical Notes", fg='yellow'))
         click.echo(f"{self.message}")
-
         self.log_workflow(
             'INFO', cid, f'Medical notes: {self.message.metadata.file_url}', 'processing')
 
         if not bool(self.message.metadata.file_url):
-            self.log_workflow(
-                'ERROR', cid, 'No blob UIR was provided for processing', 'failure')
-            return
+            raise CompletedException("No file_path was provided")
 
         # Get the blob name, file name and extension
         self.blob_name = get_blob_name(self.message.metadata.file_url)
@@ -193,6 +190,7 @@ Output format:
         self.log_workflow(
             'INFO',  cid, f'Transcribing file: {file_path}', 'processing')
 
+        transcribed_file = ""
         try:
             opts = TranscribeOpts(
                 file_path=file_path)
@@ -218,6 +216,7 @@ Output format:
         finally:
             # Delete the downloaded file
             delete_file(file_path)
+            delete_file(transcribed_file)
 
         llm = LLMService(get_aoai_client_instance())
         self.llmopts = LLMOpts(
