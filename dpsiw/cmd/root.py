@@ -1,18 +1,19 @@
+import asyncio
 
 import click
 from click_aliases import ClickAliasedGroup
-
 from dpsiw.constants import *
 from dpsiw.services import azurequeue
 from dpsiw.services.azureblob import AzureBlobContainer
+from dpsiw.services.azureservicebus import get_azuresb_instance
+from dpsiw.services.mgdatabase import MongoDBService
 from dpsiw.services.mockdatagenerators import MockGenerator
-from dpsiw.services.mockproducer import MockProducer
+from dpsiw.services.mockproducersb import MockProducerSB
 from dpsiw.services.servicecontainer import ServiceContainer, get_service_container_instance
 from dpsiw.services.settings import Settings, get_settings_instance
-from dpsiw.services.azurespeech import AzureSTT, TranscribeOpts, Transcriber
 from dpsiw.services.filewatcher import watch_folder
 from dpsiw.services.mockpysiciandata import init_mock_physician_data
-from dpsiw.workers.worker import Worker
+from dpsiw.workers.sbworker import WorkerSB
 from dpsiw.web.server import Server
 
 
@@ -29,9 +30,7 @@ queue_client = azurequeue.AzureQueue.get_client(
 queue_service = azurequeue.AzureQueue(queue_client)
 service_container[constants.SERVICE_MESSAGES_QUEUE] = queue_service
 
-# Mock producer
-producer = MockProducer(queue_service)
-service_container['producer'] = producer
+
 # endregion: Dependency Injection
 
 # region: Commands
@@ -59,44 +58,48 @@ def create_table():
     service_container.get('physician_repository').create_table()
 
 
+async def send_async(number):
+    click.echo(click.style(f"Producing {number} messages", fg="cyan"))
+    producer = MockProducerSB()
+    await producer.mock_message_producer(number)
+    # await asyncio.sleep(1)
+
+
 @ cli.command(help="Produce mock messages", aliases=['producer'])
 @ click.option('--number', '-n', default=1, help='Number of messages to produce')
 def produce(number: int):
-    click.echo(click.style(f"Producing {number} messages", fg="cyan"))
-    # queue_client = azurequeue.AzureQueue.get_client()
-    # queue_service = azurequeue.AzureQueue(queue_client)
-    # queue_service.mock_message_producer()
-    service_container.get('producer').mock_message_producer(number)
+    asyncio.run(send_async(number))
+
+
+async def consume_async(instances: int = 1, endless: bool = False):
+    await WorkerSB.start(instances, endless=endless)
+    # worker.start(instances, endless=endless)
+    # await asyncio.sleep(.1)
+
+
+@ cli.command(help="Start one or more message consumers (workers)", aliases=['worker'])
+@ click.option('--instances', '-i', default=1, help='Number of instances.')
+@ click.option('--endless', '-e', is_flag=True, help='Endless loop')
+def consume(instances: int = 1, endless: bool = False):
+    asyncio.run(consume_async(instances, endless=endless))
+
+
+async def purge_async():
+    click.echo(click.style("Emptying the messages queue", fg="cyan"))
+    azuresb = get_azuresb_instance()
+    await azuresb.purge()
 
 
 @ cli.command(help="Empty the messages queue", aliases=['qclear'])
 def queue_clear():
-    click.echo(click.style("Emptying the messages queue", fg="cyan"))
-    # queue_client = azurequeue.AzureQueue.get_client()
-    # queue_service = azurequeue.AzureQueue(queue_client)
-    queue_service.empty_queue()
-    service_container.get('messages_queue').empty_queue()
+    asyncio.run(purge_async())
 
 
 @ cli.command(help="Empty the messages queue", aliases=['qcount'])
 def queue_count():
     click.echo(click.style("Counting the messages queue", fg="cyan"))
-    # queue_client = azurequeue.AzureQueue.get_client()
-    # queue_service = azurequeue.AzureQueue(queue_client)
-    queue_service.empty_queue()
-    service_container.get('messages_queue').count()
-
-
-@ cli.command(help="Start one or more message processing workers", aliases=['worker'])
-@ click.option('--instances', '-i', default=1, help='Number of instances.')
-@ click.option('--endless', '-e', is_flag=True, help='Endless loop')
-def consume(instances: int = 1, endless: bool = False):
-    worker = Worker()
-    worker.start(instances, endless=endless)
-
-# @cli.command()
-# def agent():
-#     click.echo("Web")
+    azuresb = get_azuresb_instance()
+    azuresb.count_messages()
 
 
 @ cli.command(help="Start a file watcher", aliases=['watch'])
@@ -126,15 +129,14 @@ def init_mock_data(clean: bool):
 @ cli.command(help="List processed messages records")
 def mt_ls():
     click.echo(click.style("Listing all messages in the table:", fg="cyan"))
-    messages = service_container.get('messages_repository').get_all_entities()
-    for message in messages:
-        print(message)
-
-
-@ cli.command(help="Delete the messages table")
-def mt_rm():
-    click.echo(click.style(f"Deleteting records on table messages", fg="cyan"))
-    service_container.get('messages_repository').delete_table()
+    # messages = service_container.get('messages_repository').get_all_entities()
+    # for message in messages:
+    #     print(message)
+    mongo_service = MongoDBService(
+        collection_name=constants.COLLECTION_TRANSCRIPTIONS)
+    docs = mongo_service.find_filter({})
+    for doc in docs:
+        print(doc['_id'], doc['status'], doc['updated'])
 
 
 @ cli.command(help="Mock generator of products, stories and transcriptions", aliases=['mdata'])
@@ -151,40 +153,18 @@ def mock_generator(type: str):
         case _:
             pass
 
-# @cli.command()
-# def recognize_worker():
+
+# @ cli.command(help="Mock transcribe a sound file", aliases=['recognize'])
+# def transcribe():
 #     opts = TranscribeOpts(
-#         queue_client=azurequeue.AzureQueue.get_client(queue_name='transcripts'),)
-#     tts: Transcriber = QueueTranscriber()
-#     tts.transcribe(opts)
+#         file_path="/home/alex/github/am8850/zebra/audio/jmdoe-1.wav")
+#     # tts: Transcriber = MockTranscriber()
+#     # print(tts.transcribe(opts=opts))
+#     tts: Transcriber = AzureSTT(settings.speech_key)
+#     print(tts.transcribe(opts=opts))
 
 
-@ cli.command(help="Mock transcribe a sound file", aliases=['recognize'])
-def transcribe():
-    opts = TranscribeOpts(
-        file_path="/home/alex/github/am8850/zebra/audio/jmdoe-1.wav")
-    # tts: Transcriber = MockTranscriber()
-    # print(tts.transcribe(opts=opts))
-    tts: Transcriber = AzureSTT(settings.speech_key)
-    print(tts.transcribe(opts=opts))
-
-
-def storage_test():
-    settings: Settings = service_container.get('settings')
-    client = AzureBlobContainer.get_blob_service_client(
-        settings.blob_connection_string)
-    azure_blob_container = AzureBlobContainer(
-        container_name='audio', blob_service_client=client, service_container=service_container)
-    azure_blob_container.create_container()
-    data = b"Hello, World!"
-    azure_blob_container.upload_bytes(data, "hello.txt")
-    azure_blob_container.list_blobs()
 # endregion: Commands
 
-
-def main():
-    cli()
-
-
 if __name__ == "__main__":
-    main()
+    cli()
