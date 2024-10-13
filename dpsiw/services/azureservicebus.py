@@ -1,5 +1,6 @@
 import logging
-from azure.servicebus import ServiceBusClient, ServiceBusMessage
+from azure.servicebus.aio import ServiceBusClient
+from azure.servicebus import ServiceBusMessage
 from azure.servicebus.management import ServiceBusAdministrationClient
 import click
 
@@ -15,11 +16,13 @@ class AzureSB:
         self.sender = self.client.get_queue_sender(queue_name=queue_name)
         self.receiver = self.client.get_queue_receiver(queue_name=queue_name)
 
-    def send_message(self, id: str, payload: str):
-        # Create a Service Bus message and send it to the queue
-        message = ServiceBusMessage(payload, correlation_id=id)
-        self.sender.send_messages(message)
-        logging.info(f"Message sent to queue: {self.queue_name}")
+    async def send_message(self, id: str, payload: str):
+        async with self.client:
+            sender = self.client.get_queue_sender(queue_name=self.queue_name)
+            # Create a Service Bus message and send it to the queue
+            message = ServiceBusMessage(payload, correlation_id=id)
+            await sender.send_messages(message)
+            logging.info(f"Message sent to queue: {self.queue_name}")
 
     def process_messages(self, callback):
         while True:
@@ -31,20 +34,20 @@ class AzureSB:
                     msg.complete()
                     logging.info(f"Completed: {msg}")
 
-    def purge(self):
-        with self.client:
-            receiver = self.client.get_queue_receiver(
-                queue_name=self.queue_name)
-            with receiver:
-                # Receive messages in a loop until the queue is empty
-                while True:
-                    messages = receiver.receive_messages(
-                        max_message_count=10, max_wait_time=5)
-                    if not messages:
+    async def purge(self):
+        ctx = 0
+        while True:
+            async with self.client:
+                receiver = self.client.get_queue_receiver(
+                    queue_name=self.queue_name)
+                async with receiver:
+                    received_msgs = await receiver.receive_messages(max_message_count=10, max_wait_time=5)
+                    if not received_msgs:
                         break
-                    for message in messages:
-                        print(f"Purging message: {message}")
-                        receiver.complete_message(message)
+                    for msg in received_msgs:
+                        await receiver.complete_message(msg)
+                        ctx += 1
+        click.echo(f"Purged {ctx} messages from queue: {self.queue_name}")
 
     def count_messages(self):
         queue_runtime_properties = self.adminclient.get_queue_runtime_properties(

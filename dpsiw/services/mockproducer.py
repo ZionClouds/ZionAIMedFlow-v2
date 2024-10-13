@@ -1,20 +1,12 @@
 import random
-from time import sleep
 import uuid
 
-import click
+import asyncclick as click
 from dpsiw.constants import constants
 from dpsiw.messages.message import DynMessage, LLMOpts, Message, ProductGenerationMD, MedicalNotesMD, SentimentMD
 from azure.storage.queue import QueueClient
 
 from dpsiw.services.settings import get_settings_instance
-
-ASTRO = '''La luna era un lugar solitario y desolado, sin vida ni sonidos, solo rocas y polvo. Pero un día, un pequeño perro llamado Astro fue enviado allí en una misión espacial. Astro era un perro valiente y curioso, con un pelaje gris y ojos brillantes.
-Al principio, Astro se sintió perdido y solo en la luna. No había nadie con quien jugar ni nada que hacer. Pero pronto descubrió que la luna tenía sus propios secretos y maravillas. Podía saltar muy alto debido a la baja gravedad y corría por las llanuras lunares con una velocidad increíble.
-Astro hizo amigos con los astronautas que venían a visitar la luna y les mostraba los lugares más increíbles. Les enseñaba a saltar y a correr en la luna y les contaba historias de su vida en la Tierra.
-Un día, Astro descubrió un cráter lleno de agua congelada. Era un lugar mágico y Astro decidió hacerlo su hogar. Allí podía correr y jugar sin fin, y los astronautas venían a visitarlo todos los días.
-Astro se convirtió en el perro más famoso de la luna y su historia inspiró a muchos otros perros a soñar con aventuras en el espacio. Y aunque la luna seguía siendo un lugar solitario, Astro sabía que nunca estaría solo, porque tenía su hogar en el cráter y sus amigos astronautas que siempre venían a visitarlo.
-Espero que disfrutes esta historia. ¡Si necesitas algo más, no dudes en preguntar!'''
 
 
 class MockProducer:
@@ -22,7 +14,7 @@ class MockProducer:
         self.client = client
         self.settings = get_settings_instance()
 
-    def mock_message_producer(self, n: int = 1):
+    async def mock_message_producer(self, n: int = 1):
         if not self.client:
             raise Exception("Queue client not initialized")
         ctx = 0
@@ -84,10 +76,8 @@ class MockProducer:
                 click.echo(click.style(
                     f"{message.type}", fg="yellow", bold=True))
                 click.echo(f"{message}")
-                self.client.send_message(message.model_dump_json())
+                await self.client.send_message(message.model_dump_json())
                 ctx += 1
 
             if ctx >= n:
                 break
-
-            # sleep(.1)

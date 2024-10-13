@@ -13,7 +13,7 @@ class MockProducerSB:
         self.azuresb = get_azuresb_instance()
         self.settings = get_settings_instance()
 
-    def mock_message_producer(self, n: int = 1):
+    async def mock_message_producer(self, n: int = 1):
         if not self.azuresb:
             raise Exception("")
         ctx = 0
@@ -72,8 +72,7 @@ class MockProducerSB:
                 click.echo(click.style(
                     f"{message.type}", fg="yellow", bold=True))
                 click.echo(f"{message}")
-                self.azuresb.send_message(
-                    message.id, message.model_dump_json())
+                await self.azuresb.send_message(message.id, message.model_dump_json())
                 ctx += 1
 
             if ctx >= n:
