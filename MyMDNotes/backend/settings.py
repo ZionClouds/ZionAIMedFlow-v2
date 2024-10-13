@@ -31,14 +31,13 @@ class Settings:
         if not bool(self.table_connection_string) or not bool(self.queue_connection_string) \
                 or not bool(self.blob_connection_string) or not bool(self.type) or not bool(self.chat_model) \
                 or not bool(self.endpoint) or not bool(self.api_key) or not bool(self.version) \
-                or not bool(self.speech_region) or not bool(self.speech_key) or not bool(self.pg_host) \
-                or not bool(self.pg_port) or not bool(self.pg_user) or not bool(self.pg_password) \
-                or not bool(self.pg_database) or not bool(self.mongo_conn_str) or not bool(self.storage_url) \
+                or not bool(self.speech_region) or not bool(self.speech_key) \
+                or not bool(self.mongo_conn_str) or not bool(self.storage_url) \
                 or not bool(self.storage_key):
             # os exist
             logging.error("Some or all missing environment variables TABLE_CONNECTION_STRING, QUEUE_CONNECTION_STRING, STORAGE_CONNECTION_STRING, " +
-                          "TYPE, CHAT_MODEL, ENDPOINT, API_KEY, VERSION, SPEECH_REGION, SPEECH_API_KEY, PG_HOST, PG_PORT, PG_USER, PG_PASSWORD, " +
-                          "PG_DATABASE, MONGO_DB, STORAGE_URL, STORAGE_KEY")
+                          "TYPE, CHAT_MODEL, ENDPOINT, API_KEY, VERSION, SPEECH_REGION, SPEECH_API_KEY, " +
+                          "MONGO_DB, STORAGE_URL, STORAGE_KEY")
             exit(1)
 
 
