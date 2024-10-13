@@ -1,7 +1,7 @@
 
 import random
 import re
-import asyncclick as click
+import click
 from openai import AzureOpenAI, OpenAI
 
 
