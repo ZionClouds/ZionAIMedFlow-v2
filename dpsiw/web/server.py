@@ -1,7 +1,7 @@
 import os
-import click
 import fastapi
 from fastapi.staticfiles import StaticFiles
+import click
 import uvicorn
 
 
