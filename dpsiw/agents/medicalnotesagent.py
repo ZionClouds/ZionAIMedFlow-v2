@@ -234,11 +234,11 @@ Output format:
             self.log_transcription.insert(
                 cid, pid, file_id, self.message.metadata.file_url, self.transcript_text, self.medical_notes, 'completed')
             click.echo(click.style(
-                f"{datetime.now(timezone.utc).timestamp()} Completed ", fg='green'), nl=False)
+                f"{datetime.now(timezone.utc).isoformat()}: Medical notes completed ", fg='green'), nl=False)
         else:
             self.log_workflow(
                 'ERROR',  cid, f'failure-{error_message}', 'failure')
             click.echo(click.style(
-                f"{datetime.now(timezone.utc).timestamp()} failure ", fg='red'), nl=False)
+                f"{datetime.now(timezone.utc).isoformat()} failure ", fg='red'), nl=False)
 
             # raise Exception("Unable to download blob")
