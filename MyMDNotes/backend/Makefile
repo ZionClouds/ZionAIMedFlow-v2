@@ -11,7 +11,7 @@ build-ui: clean
 	cp -r ../mymdnotes/dist/* static/
 
 NAME=am8850/zebra
-TAG=0.0.3a
+TAG=0.0.4a
 docker-build: build-ui
 	docker build -t $(NAME):$(TAG) .
 

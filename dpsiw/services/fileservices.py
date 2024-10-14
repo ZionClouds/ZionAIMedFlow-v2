@@ -4,7 +4,18 @@ import logging
 import os
 
 
+def write_text_file(file_path: str, contents: str) -> None:
+    """
+    Write the contents to the file at the given path
+    """
+    with open(file_path, "w") as f:
+        f.write(contents)
+
+
 def read_text_file(file_path: str) -> str:
+    """
+    Read the contents of the file at the given path
+    """
     with open(file_path, "r") as f:
         return f.read()
 

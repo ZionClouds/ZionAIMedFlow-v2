@@ -4,7 +4,7 @@ default:
 
 # Build and run the application
 NAME=am8850/dips
-TAG=0.0.3a
+TAG=0.0.4a
 docker-build:
 	docker build -t $(NAME):$(TAG) .
 

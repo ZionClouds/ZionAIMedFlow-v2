@@ -1,7 +1,7 @@
 import random
 import uuid
 
-import asyncclick as click
+import click
 from dpsiw.constants import constants
 from dpsiw.messages.message import DynMessage, LLMOpts, Message, ProductGenerationMD, MedicalNotesMD, SentimentMD
 from azure.storage.queue import QueueClient
@@ -27,14 +27,14 @@ class MockProducer:
                     # fileid = uuid.uuid4()
                     # message = Message(id=id, type="Transcription", metadata=TranscriptionMD(
                     #     filePath=f"{id}-{fileid}.wav"))
-                    mock_file = "https://stdipsdevcus.blob.core.windows.net/medical-notes-in/jmdoe-4c6eda49cc.wav"
+                    mock_file = "https://stdipsdevcus.blob.core.windows.net/medical-notes-in/jmdoe-22678c74dc.wav"
                     message = Message(id=id,
                                       pid="jmdoe",
                                       type=constants.MEDICAL_NOTES_AGENT,
                                       metadata=MedicalNotesMD(
                                           file_url=f"{mock_file}",
-                                          blob_name="medical-notes-in/jmdoe-4c6eda49cc.wav",
-                                          file_id='4c6eda49cc'
+                                          blob_name="medical-notes-in/jmdoe-22678c74dc.wav",
+                                          file_id='22678c74dc'
                                       ),
                                       llmopts=LLMOpts(
                                           type="azure",
