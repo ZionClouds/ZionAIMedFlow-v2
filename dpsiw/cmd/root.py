@@ -34,6 +34,9 @@ def cli():
 
 
 async def send_async(number):
+    """
+    Produce mock messages
+    """
     click.echo(click.style(f"Producing {number} messages", fg="cyan"))
     producer = MockProducerSB()
     await producer.mock_message_producer(number)
@@ -43,23 +46,33 @@ async def send_async(number):
 @ cli.command(help="Produce mock messages", aliases=['producer'])
 @ click.option('--number', '-n', default=1, help='Number of messages to produce')
 def produce(number: int):
+    """
+    Command to produce mock messages
+    """
     asyncio.run(send_async(number))
 
 
 async def consume_async(instances: int = 1, endless: bool = False):
+    """
+    Start one or more message consumers (workers)
+    """
     await WorkerSB.start(instances, endless=endless)
-    # worker.start(instances, endless=endless)
-    # await asyncio.sleep(.1)
 
 
 @ cli.command(help="Start one or more message consumers (workers)", aliases=['worker'])
 @ click.option('--instances', '-i', default=1, help='Number of instances.')
 @ click.option('--endless', '-e', is_flag=True, help='Endless loop')
 def consume(instances: int = 1, endless: bool = False):
+    """
+    Command to start one or more message consumers (workers)
+    """
     asyncio.run(consume_async(instances, endless=endless))
 
 
 async def purge_async():
+    """
+    Empty the messages queue
+    """
     click.echo(click.style("Emptying the messages queue", fg="cyan"))
     azuresb = get_azuresb_instance()
     await azuresb.purge()
@@ -67,11 +80,17 @@ async def purge_async():
 
 @ cli.command(help="Empty the messages queue", aliases=['qclear'])
 def queue_clear():
+    """
+    Command to empty the messages queue
+    """
     asyncio.run(purge_async())
 
 
 @ cli.command(help="Empty the messages queue", aliases=['qcount'])
 def queue_count():
+    """
+    Command to count the messages queue
+    """
     click.echo(click.style("Counting the messages queue", fg="cyan"))
     azuresb = get_azuresb_instance()
     azuresb.count_messages()
@@ -80,6 +99,9 @@ def queue_count():
 @ cli.command(help="Start a file watcher", aliases=['watch'])
 @ click.option('--folder', '-f', default='.', help='Path to watch')
 def file_watcher(folder: str):
+    """
+    Command to start a file watcher
+    """
     click.echo(click.style(f"Watching folder {folder}", fg="cyan"))
 
     def delegate(path):
@@ -91,6 +113,9 @@ def file_watcher(folder: str):
 @ click.option('--port', '-p', default=8000, help='Port to listen on')
 @ click.option('--host', '-h', default='127.0.0.1', help='Host to listen on')
 def web(port: int, host: str):
+    """
+    Command to start a web server
+    """
     Server.start(host=host, port=port)
 
 
@@ -98,6 +123,9 @@ def web(port: int, host: str):
 @ click.option('--clean', '-c', is_flag=True, help='Clean the tables')
 def init_mock_data(clean: bool):
     click.echo(click.style("Initializing mock data", fg="cyan"))
+    """
+    Command to initialize mock physician and template mock data
+    """
     init_mock_physician_data(clean)
 
 
@@ -133,6 +161,9 @@ def mock_generator(type: str):
 @click.option('--file', '-f', help='Full file path (ie /home/user/audio.wav)')
 @click.option('--output', '-o', default='./output.txt', help='Full output file path (ie /home/user/output.txt)')
 def transcribe(file: str, output: str):
+    """
+    Command to transcribe an audio file
+    """
     if not file or not output:
         click.echo(click.style(
             "Please provide a file and output path\n  transcribe -f input.mp3 -o output.txt", fg="red"))
