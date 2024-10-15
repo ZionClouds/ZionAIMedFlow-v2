@@ -129,17 +129,24 @@ def init_mock_data(clean: bool):
     init_mock_physician_data(clean)
 
 
-@ cli.command(help="List processed messages records")
-def mt_ls():
+@ cli.command(help="List messages from a mongodb collection")
+@ click.option('--collection', '-c', default='transcriptions', help='The collection')
+def mt_ls(collection: str):
+    """
+    Command to list physician transcriptions
+    """
     click.echo(click.style("Listing all messages in the table:", fg="cyan"))
     # messages = service_container.get('messages_repository').get_all_entities()
     # for message in messages:
     #     print(message)
     mongo_service = MongoDBService(
-        collection_name=constants.COLLECTION_TRANSCRIPTIONS)
+        collection_name=collection)
     docs = mongo_service.find_filter({})
     for doc in docs:
-        print(doc['_id'], doc['status'], doc['updated'])
+        if collection == 'transcriptions':
+            print(doc['_id'], doc['file_id'], doc['status'], doc['updated'])
+        else:
+            print(doc)
 
 
 @ cli.command(help="Mock generator of products, stories and transcriptions", aliases=['mdata'])
