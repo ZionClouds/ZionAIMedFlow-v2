@@ -1,4 +1,5 @@
 import logging
+
 from dpsiw.messages.message import Message
 from dpsiw.services.mgdatabase import EventsRepository
 from dpsiw.services.servicecontainer import get_service_container_instance

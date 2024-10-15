@@ -8,7 +8,7 @@ from .agent import Agent
 from dpsiw.messages.message import Message
 
 
-class ProductGeneration(Agent):
+class ProductGenerationAgent(Agent):
     def __init__(self) -> None:
         super().__init__()
         self.client = None

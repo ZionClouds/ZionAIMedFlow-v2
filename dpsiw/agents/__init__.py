@@ -1,4 +1,4 @@
 from .agent import *
-from .productgeneration import *
-from .sentimentanalysis import *
+from .productgenerationagent import *
+from .sentimentanalysisagent import *
 from .medicalnotesagent import *
