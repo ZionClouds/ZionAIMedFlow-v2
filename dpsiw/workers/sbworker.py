@@ -1,5 +1,6 @@
 import asyncio
 from base64 import b64decode
+from concurrent.futures import ThreadPoolExecutor
 import logging
 import uuid
 
@@ -83,11 +84,25 @@ class WorkerSB:
         click.echo(click.style(
             f"Starting {instances} worker instances", fg="cyan"))
 
-        tasks = []
-        for _ in range(instances):
-            id = str(uuid.uuid4())[:6]
-            t = asyncio.create_task(WorkerSB(id).process())
-            print(f"Thread ID: {id} started")
-            tasks.append(t)
-        for t in tasks:
-            await t
+        # tasks = []
+        # for _ in range(instances):
+        #     id = str(uuid.uuid4())[:6]
+        #     t = asyncio.create_task(WorkerSB(id).process())
+        #     print(f"Thread ID: {id} started")
+        #     tasks.append(t)
+
+        # await asyncio.wait(tasks)
+
+        # Create multiple tasks
+        # loop = asyncio.get_event_loop()
+        # with ThreadPoolExecutor(max_workers=5) as executor:
+        #     tasks = []
+        #     for i in range(5):
+        #         # Use loop.run_in_executor to run the blocking worker in a separate thread
+        #         id = str(uuid.uuid4())[:6]
+        #         task = asyncio.create_task(loop.run_in_executor(
+        #             executor, WorkerSB(id).process))
+        #         tasks.append(task)
+
+        # Wait for all tasks to complete
+        await asyncio.gather(*[await asyncio.to_thread(WorkerSB(str(uuid.uuid4())[:6]).process) for _ in range(instances)])
