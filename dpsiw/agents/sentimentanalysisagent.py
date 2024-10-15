@@ -9,7 +9,7 @@ from .agent import Agent
 from dpsiw.messages.message import Message
 
 
-class SentimentAnalysis(Agent):
+class SentimentAnalysisAgent(Agent):
     def __init__(self) -> None:
         super().__init__()
         self.message: Message = None
