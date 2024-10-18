@@ -84,7 +84,7 @@ MONGO_DB="mongodb://<NAME>:<PWD>@mgdipsdevcus.mongo.cosmos.azure.com:10255/?ssl=
 
 ```python
 if __name__ == "__main__":
-    main()
+    cli()
 
 # To
 
