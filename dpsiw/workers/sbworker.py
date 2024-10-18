@@ -50,7 +50,7 @@ class WorkerSB:
                             instance: Agent = eval(message.type)()
                             click.echo(f"Processing instance: {instance}")
                             if instance:
-                                instance.process(message)
+                                await instance.process(message)
                         # except CompletedException as e:
                         #     logging.error(
                         #         f"Completed message with exception: {e.message}")

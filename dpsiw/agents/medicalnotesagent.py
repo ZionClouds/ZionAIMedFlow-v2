@@ -1,3 +1,4 @@
+import asyncio
 from datetime import datetime, timezone
 
 import click
@@ -126,7 +127,9 @@ Output format:
         else:
             return (False, "No content or notes")
 
-    def process(self, message: Message):
+    async def process(self, message: Message):
+
+        await asyncio.sleep(.1)
 
         # Get a processing ID
         cid = message.id
