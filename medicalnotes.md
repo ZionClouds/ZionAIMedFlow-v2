@@ -135,7 +135,7 @@ This Azure function monitor a Blob storage container and when a user adds a blob
 
 #### Frontend
 
-> Note: I switch from using NPM to using bun.
+> Note: I switched from using NPM to using [bun.sh](https://bun.sh/).
 
 - Install the packages: 
   - `npm install` or `bun install`
