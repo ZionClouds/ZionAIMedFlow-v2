@@ -1,0 +1,136 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2021-09-09/uiFormDefinition.schema.json#",
+    "view": {
+      "kind": "Form",
+      "properties": {
+        "title": "YAK deployment",
+        "steps": [
+          {
+            "name": "YAKScenario",
+            "label": "Deployment",
+            "elements": [
+              {
+                "name": "resourceScope",
+                "type": "Microsoft.Common.ResourceScope",
+                "subscription": {
+                  "constraints": {
+                    "validations": []
+                  },
+                  "resourceProviders": [
+                    "Microsoft.Compute"
+                  ]
+                },
+                "location": {
+                  "label": "Region",
+                  "toolTip": "Azure region",
+                  "resourceTypes": [
+                    "microsoft.resources/resourcegroups"
+                  ],
+                  "allowedValues": [
+                    "australiaeast",
+                    "canadaeast",
+                    "eastus",
+                    "eastus2",
+                    "northcentralus",
+                    "swedencentral",
+                    "switzerlandnorth"
+                  ]
+                }
+              },
+              {
+                "name": "environmentName",
+                "type": "Microsoft.Common.TextBox",
+                "label": "Environment name",
+                "toolTip": "Environment name for the deployment, it will be used as a prefix for all resources.",
+                "defaultValue": "yak",
+                "constraints": {
+                  "required": true,
+                  "validations": []
+                }
+              }
+            ]
+          },
+          {
+            "name": "imageConfig",
+            "label": "Azure Container Apps",
+            "subLabel": {
+                "preValidation": "Configure the container images for the Frontend and Backend",
+                "postValidation": "Done"
+              },
+            "elements": [
+              {
+                "name": "imageFrontEnd",
+                "type": "Microsoft.Common.TextBox",
+                "label": "Container Image path for Frontend",
+                "toolTip": "The path for Docker HUB image for the Frontend",
+                "defaultValue": "welasco/yak-frontend:latest",
+                "constraints": {
+                  "required": true,
+                  "validations": []
+                }
+              },
+              {
+                "name": "imageBackEnd",
+                "type": "Microsoft.Common.TextBox",
+                "label": "Container Image path for Backend",
+                "toolTip": "The path for Docker HUB image for the Backend",
+                "defaultValue": "welasco/yak-backend:latest",
+                "constraints": {
+                  "required": true,
+                  "validations": []
+                }
+              }
+            ]
+          },
+          {
+            "name": "appRegistrationConfig",
+            "label": "App Registration",
+            "subLabel": {
+                "preValidation": "Configure the App Registration for the Frontend and Backend",
+                "postValidation": "Done"
+              },
+            "elements": [
+              {
+                "name": "appRegistrationClientId",
+                "type": "Microsoft.Common.TextBox",
+                "label": "App Registration Client ID",
+                "toolTip": "App Registration Client ID",
+                "defaultValue": "",
+                "constraints": {
+                  "required": true,
+                  "validations": []
+                }
+              },
+              {
+                "name": "appRegistrationClientSecret",
+                "type": "Microsoft.Common.PasswordBox",
+                "label": {
+                  "password": "Secret",
+                  "confirmPassword": "Confirm Secret"
+                },
+                "toolTip": "App Registration Client Secret",
+                "defaultValue": "",
+                "constraints": {
+                  "required": true,
+                  "validations": []
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "outputs": {
+        "parameters": {
+          "location": "[steps('YAKScenario').resourceScope.location.name]",
+          "environmentName": "[steps('YAKScenario').environmentName]",
+          "imageNameFrontEnd": "[steps('imageConfig').imageFrontEnd]",
+          "imageNameBackEnd": "[steps('imageConfig').imageBackEnd]",
+          "appRegistrationClientId": "[steps('appRegistrationConfig').appRegistrationClientId]",
+          "appRegistrationSecret": "[steps('appRegistrationConfig').appRegistrationClientSecret]"
+        },
+        "kind": "ResourceGroup",
+        "location": "[steps('YAKScenario').resourceScope.location.name]",
+        "resourceGroupId": "[steps('YAKScenario').resourceScope.resourceGroup.id]"
+      }
+    }
+  }
