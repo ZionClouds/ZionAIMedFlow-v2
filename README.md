@@ -1,3 +1,25 @@
+---
+page_type: sample
+languages:
+- azdeveloper
+- python
+- bash
+- bicep
+products:
+- azure
+- azure-openai
+- azure-ai-speech
+- azure-ai-translation
+- azure-cosmosdb
+- azure-service-bus
+- azure-function-apps
+- azure-container-apps
+- azure-storage-tables
+urlFragment: datafusion-chat
+name: Zion DataFusion RAG- A RAG Copilot powered by Azure AI Studio and Azure OpenAI (Python Implementation)
+description: Develop, assess, and deploy a RAG-based copilot that answers customer inquiries with responses grounded in user knowledge and customer data.
+---
+
 # ZionAI MedFlow: Streamlining Healthcare with Intelligent Automation
 
 Transform your medical practice with Zion MedFlow GenAI, an advanced workflow automation solution designed to make your clinic more efficient and patient-centric. This powerful system seamlessly integrates with your existing tools and processes to intelligently manage, process, and analyze critical patient data in real-time.
@@ -10,62 +32,100 @@ Need to update patient details or adjust workflows on the fly? The Metadata Edit
 
 Zion MedFlow GenAI is simple to implement and customize. Our development-friendly environment makes setup a breeze—just clone the repository, configure your settings, and run the solution in Visual Studio Code. Your clinic will be up and running with intelligent workflow automation in no time.
 
+### Architecture Diagram
+
+<p align="center">
+<img src="media/images/architecture-solutionflow.png" alt="Zion AI Med Flow" />
+</p>
+
+
 # Distributed Processing System For Intelligent Workloads (DPSIw)
 
 This prototype system is a distributed application that utilizes various components to process and analyze messages. It consists of a Worker module that receives messages from different sources such as file watchers and blob storage events. These messages are then processed by message processing workers, which apply content filters and interact with services and tools. The system also includes a Metadata Loader that interacts with a Profile Loader and Transcription Service. Additionally, there is a Monitor module that provides an admin console for managing the system, a User Portal for physicians to access the system, and a Metadata Editor for editors to make changes. 
 
 The prototype environment relies on Azure Storage Emulator for development and requires specific environment variables to be set. To run the system, the repository needs to be cloned, an environment file created, and a virtual Python environment set up. Finally, the solution can be opened in VS Code and executed. 
 
-## Application Architecture Diagram
 
-```mermaid
-graph LR
-  subgraph DPSI-w System
-    direction LR
-    M(Agent<br>Message):::blue--POST-->Q
-    ST--File<br>Created<br>Event-->W
-    FW(File<br>Watcher):::orange--File<br>Added<br>Event-->Q
-    Q(Queue<br>Storage):::yellow--subscribe-->W
-    W(Message<br>Processing<br>Worker):::orange<--invoke-->TR1(Medical<br>Notes<br>Agent):::orange
-    W<--invoke-->TR2(Sentiment<br>Analysis<br>Agent):::orange
-    W<--invoke-->PG(Product<br>Generation<br>Agent):::orange
-    TR1<--call-->GPT(LLM<br>Service):::orange
-    TR2<--call-->GPT
-    PG<--call-->GPT
-    TR1--save-->ST(Table<br>Storage):::yellow
-    TR2--save-->ST
-    PG--save-->ST
-    TR1-->BL(Blob<br>Storage):::yellow
-    TR2-->BL
-    PG-->BL    
-    W--Logs-->ST
-    TTSM(TTS<br>Message):::blue--POST-->TTSQ(TTS<br>Queue):::yellow
-    TTSQ--subscribe-->TTSW(TTS<br>Message<br>Worker):::orange
-    TTSW<-->ASP(Azure<br>Speech<br>Service):::orange
-    TTSW--File<br>Added-->Q
-    TTSW-->ST
-  end
-  subgraph Monitor
-    AD((Admin user)):::blue<-->MO
-    MO(Admin<br>Console):::red<-->ST
-  end
-  subgraph User Portal
-    direction LR
-    PH((Physician)):::blue<-->UP(User<br>Portal):::red
-    UP<-->ST
-  end
-  subgraph Metadata Editor
-    direction LR
-    ED((Editor)):::blue<-->EC[Editor<br>Console]:::red
-    EC<-->ST
-  end
+## Features
 
-  classDef blue fill:blue,color:#fff
-  classDef green fill:green,color:black  
-  classDef yellow fill:yellow,color:black  
-  classDef orange fill:orange,color:black
-  classDef red fill:red,color:black
-```
+The project template provides the following features:
+
+- [Azure OpenAI](https://learn.microsoft.com/azure/ai-services/openai/) for embeddings, chat, and evaluation models
+- [Azure AI Search](https://azure.microsoft.com/products/ai-services/ai-search) for performing semantic similarity search
+- [Azure Container Apps](https://learn.microsoft.com/azure/container-apps/overview) for hosting the chat AI endpoint on Azure
+
+It also comes with:
+- Sample product and customer data for rapid prototyping
+- Sample datasets and custom evaluators
+- Integrates Azure AI Search for indexing and retrieval of documents
+
+## Pre-requisites
+
+To deploy and explore the sample, you will need:
+
+1. An active Azure subscription - [Signup for a free account here](https://azure.microsoft.com/free/)
+1. Access to Azure OpenAI Services - [Learn about Limited Access here](https://learn.microsoft.com/legal/cognitive-services/openai/limited-access)
+1. Available Quota for: `text-embedding-ada-002` and `gpt-4o`
+
+We recommend deployments to `eastus` or `swedencentral` as regions that can support all these models. In addition to the above, you will also need the ability to:
+ - provision Azure Monitor (free tier)
+ - provision Azure Container Apps (free tier)
+
+From a tooling perspective, familiarity with the following is useful:
+ - Visual Studio Code (and extensions)
+ - Python and Jupyter Notebooks
+ - Azure CLI, Azure Developer CLI and commandline usage
+
+## Solution Deployment
+The sample illustrates the end-to-end workflow (GenAIOps) for building a RAG-based application **code-first** with Azure AI. By exploring and deploying this sample, you will learn to:
+
+1. Deploy and use [Azure OpenAI](https://learn.microsoft.com/azure/ai-services/openai/) models for chat, embeddings and evaluation
+1. Host the application as a FastAPI endpoint deployed to Azure Container Apps
+1. Provision and deploy the solution using the Azure Developer CLI
+1. Support Responsible AI practices with content safety & assessments
+
+
+## Deployment Wizard
+
+First create an Azure Entra Service Principal that will be used for User Authentication (Easy Auth):
+
+## Deploying through azd
+
+Follow these steps to provision Azure resources and deploy the application code:
+
+1. Clone this repo locally to your machine
+
+    ```shell
+    git clone https://github.com/ZionClouds/ZionDataFusionAI
+    ```
+
+1. Login to your Azure account:
+
+    ```shell
+    azd auth login --use-device-code
+    ```
+
+    ```shell
+    az login --use-device-code
+    ```
+
+1. Create a new azd environment:
+
+    ```shell
+    azd env new
+    ```
+
+    Enter a name that will be used for the resource group.
+    This will create a new folder in the `.azure` folder, and set it as the active environment for any calls to `azd` going forward.
+1. (Optional) This is the point where you can customize the deployment by setting environment variables, in order to [use existing resources](docs/deploy_existing.md), [enable optional features (such as auth or vision)](docs/deploy_features.md), or [deploy to free tiers](docs/deploy_lowcost.md).
+
+1. Run `azd up` - This will provision Azure resources and deploy this sample to those resources, including building the search index based on the files found in the `./data` folder.
+    - **Important**: Beware that the resources created by this command will incur immediate costs, primarily from the AI Search resource. These resources may accrue costs even if you interrupt the command before it is fully executed. You can run `azd down` or delete the resources manually to avoid unnecessary spending.
+    - You will be prompted to select two locations, one for the majority of resources and one for the OpenAI resource, which is currently a short list. That location list is based on the [OpenAI model availability table](https://learn.microsoft.com/azure/cognitive-services/openai/concepts/models#model-summary-table-and-region-availability) and may become outdated as availability changes.
+
+> NOTE: It may take 5-10 minutes after you see 'SUCCESS' for the application to be fully deployed. If you see a "Python Developer" welcome screen or an error page, then wait a bit and refresh the page. See [guide on debugging App Service deployments](docs/appservice.md).
+
+
 ## Development
 
 ### Development dependecies
