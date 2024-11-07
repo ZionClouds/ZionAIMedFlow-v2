@@ -56,8 +56,13 @@ def status():
 
 @app.delete("/truncate")
 def truncate_collect():
+    """
+    Truncate all the collection
+    NOTE: This is a dangerous operation and should be removed in production
+    """
     try:
         mongo_service.collection.delete_many({})
+        return {"status": "collection truncated"}
     except Exception as e:
         logging.error(f"Error: {e}")
         raise HTTPException(

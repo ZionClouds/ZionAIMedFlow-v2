@@ -1,6 +1,6 @@
 # Medical notes
 
-## Architecture Diagram
+## DPSiw (DIPs) Architecture Diagram
 
 ```mermaid
 graph LR
@@ -17,6 +17,24 @@ graph LR
   D(User<br>Dashboard)--view/edit-->M
 
 ```
+
+## ZionMedFlow - Frontend
+
+```mermaid
+graph LR
+   F(React SPA<br/>Frontend) --> B(Python<br/>Backend)   
+   B --> M(Azure<br/>CosmosDB</br>MongoDB)
+   B --> ST(Azure<br>Blob<br/>Storage)
+```
+
+## SaaS Hosting
+
+- Shared: One environment multiple providers
+  - Deploy dips to a shared environment
+  - Deploy ZionMedFlow to a shared environment
+  - Providers join independently
+- Dedicated: One environment exclusively for a provider office
+  - Providers join as a group
 
 ## Development and Debugging
 

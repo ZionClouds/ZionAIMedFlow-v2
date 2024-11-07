@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 
 class Settings:
     def __init__(self):
-        load_dotenv('../.env')
+        load_dotenv()
         self.table_connection_string = os.getenv("TABLE_CONNECTION_STRING")
         self.queue_connection_string = os.getenv("QUEUE_CONNECTION_STRING")
         self.blob_connection_string = os.getenv("STORAGE_CONNECTION_STRING")
