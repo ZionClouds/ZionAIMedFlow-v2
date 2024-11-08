@@ -1,10 +1,11 @@
 import asyncio
 from datetime import datetime, timezone
+import uuid
 
 import click
 from openai import AzureOpenAI
 from dpsiw.constants import constants
-from dpsiw.exceptions import CompletedException
+from dpsiw.exceptions import CompletedException, DeadLetteredException
 from dpsiw.services.azureblob import AzureBlobContainer, get_blob_name, get_file_name_and_extension
 from dpsiw.services.azurespeech import AzureSTT, TranscribeOpts, Transcriber
 from dpsiw.services.fileservices import delete_file, read_text_file
@@ -51,32 +52,35 @@ class MedicalNotesAgent(Agent):
         self.physicians_repository = MongoDBService(
             collection_name=constants.COLLECTION_PHYSICIANS)
         self.log_transcription = TranscriptionsRepository()
-        self.llmopts: LLMOpts = None
         self.llm = LLMService(get_aoai_client_instance())
 
     def produce_notes(self, cid: str, pid: str, file_id: str) -> str:
         self.log_workflow(
-            'INFO',  cid, 'Calling the LLM to summarize', 'processing')
-        self.llmopts = LLMOpts(
+            'INFO', cid, 'Calling the LLM to summarize', 'processing')
+
+        llmopts = LLMOpts(
             type="azure",
             temperature=0.1,
             model=self.settings.chat_model,
         )
-        messages: list[GPTMessage] = [
-            GPTMessage(role="system",
-                       content=self.system_prompt),
+
+        messages = [
+            GPTMessage(role="system", content=self.system_prompt),
             GPTMessage(role="user", content=self.transcript_text)
         ]
-        self.medical_notes = self.llm.completion(self.llmopts, messages)
+
+        self.medical_notes = self.llm.completion(llmopts, messages)
+
         self.log_transcription.insert(
-            cid, pid, file_id, self.message.metadata.file_url, self.transcript_text, self.medical_notes, 'processed')
+            cid, pid, file_id, self.message.metadata.file_url, self.transcript_text, self.medical_notes, 'processed'
+        )
 
     def pre_validate(self) -> tuple[bool, str]:
         if not self.blob_container.check_blob(self.message.metadata.file_url):
             return (False, "Invalid blob")
 
-        if not bool(self.blob_name) or not bool(self.file_name) or not bool(self.file_ext):
-            return (False, "Invalid blob file namd or ext")
+        if not self.blob_name or not self.file_name or not self.file_ext:
+            return (False, "Invalid blob file name or extension")
 
         return (True, "")
 
@@ -86,20 +90,22 @@ class MedicalNotesAgent(Agent):
         else:
             return (False, "No content or notes")
 
-    def find_provider_template(self, cid: str, pid: str) -> str:
-        # Find the physician's specialty and template or set to GP if not found
-        # NOTE: Convetion, the audio file should carry the physician's id. For example, jmdoe-consultation.wav
+    def find_provider_template(self, cid: str, pid: str) -> None:
+        """
+        Find the physician's specialty and template or set to GP if not found.
+        NOTE: Convention, the audio file should carry the physician's id. For example, jmdoe-consultation.wav
+        """
         self.log_workflow(
-            'INFO',  cid, 'Looking for the physician template', 'processing')
+            'INFO', cid, 'Looking for the physician template', 'processing')
         doc = self.physicians_repository.find_id(pid)
         if doc:
-            self.specialty = doc['specialty']
+            self.specialty = doc.get('specialty', 'GP')
             self.log_workflow(
-                'INFO',  cid, f'Setting physician template to: {self.specialty}', 'processing')
+                'INFO', cid, f'Setting physician template to: {self.specialty}', 'processing')
         else:
             self.specialty = 'GP'
             self.log_workflow(
-                'INFO',  cid, f'Unable to find the physician template. Setting it to: GP', 'processing')
+                'INFO', cid, 'Unable to find the physician template. Setting it to: GP', 'processing')
 
     def get_blob_information(self):
         self.blob_name = get_blob_name(self.message.metadata.file_url)
@@ -108,13 +114,22 @@ class MedicalNotesAgent(Agent):
         self.file_name = file_name
         self.file_ext = file_ext
 
+    @staticmethod
+    def get_10_digit_id() -> str:
+        """
+        Get a 10 digit ID
+        """
+        return str(uuid.uuid4())[:6]
+
     def download_blob(self, cid: str) -> str:
         # Download the audio file
         self.log_workflow(
             'INFO',  cid, 'Downloading blob', 'processing')
 
         file_path = self.blob_container.download_blob_url(
-            self.message.metadata.file_url)
+            self.message.metadata.file_url,
+            MedicalNotesAgent.get_10_digit_id() + self.file_ext
+        )
 
         if not bool(file_path):
             self.log_workflow(
@@ -156,10 +171,12 @@ class MedicalNotesAgent(Agent):
             delete_file(file_path)
             delete_file(transcribed_file)
 
-    def process(self, message: Message):
+    async def process(self, message: Message):
 
         click.echo(click.style(
             f"{datetime.now().isoformat()} : Received Medical Notes message", fg='yellow'))
+
+        await asyncio.sleep(.1)
 
         # Receive Message and add logging
         self.message = message
@@ -182,7 +199,7 @@ class MedicalNotesAgent(Agent):
         (status, err) = self.pre_validate()
         if not status:
             self.log_workflow('ERROR', cid, f'error-{err}', 'failure')
-            return
+            raise CompletedException('error-Invalid blob')
 
         self.log_workflow(
             'INFO', cid, f'Medical notes: {self.message.metadata.file_url}', 'processing')
@@ -209,3 +226,7 @@ class MedicalNotesAgent(Agent):
                 'ERROR',  cid, f'failure-{error_message}', 'failure')
             click.echo(click.style(
                 f"{datetime.now(timezone.utc).isoformat()}: Processing Medal notes failure. Please check the logs.", fg='red'), nl=False)
+
+            # NOTE: Decide what to do with the message. Maybe re-process or maybe dead-letter it.
+            raise DeadLetteredException(
+                "Processing Medal notes failure. Please check the logs.")
