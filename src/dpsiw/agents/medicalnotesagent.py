@@ -52,67 +52,26 @@ class MedicalNotesAgent(Agent):
             collection_name=constants.COLLECTION_PHYSICIANS)
         self.log_transcription = TranscriptionsRepository()
         self.llmopts: LLMOpts = None
+        self.llm = LLMService(get_aoai_client_instance())
 
-    def get_system_prompt(self):
-        # TODO: based on the specialty, get the system prompt
-        #         match self.specialty:
-        #             case "GP":
-        #                 self.system_prompt = """You are a medical AI assistant that can help analyze and summarize a transcript recorded during a physician and a patient encounter. Break the analysis and summary into:
-
-        # History of Present illness
-        # Family History
-        # Social History
-        # Dietary Habits
-        # Medications
-        # Procedure
-        # Results
-        # Assessment and plan
-
-        # Rules:
-        # - Do not skip important information in the summary
-        # - Remove the patient's name or any personal information
-        # - Use 'the patient'
-        # - Write in the third person
-
-        # Output format:
-        # - You must write in paragraphs
-        # """
-        #             case _:
-        #                 self.system_prompt = "Please provide the medical notes for this patient"
-
-        self.system_prompt = """You are a medical AI assistant that can help analyze and summarize a transcript recorded during a physician and a patient encounter. Break the analysis and summary into:
-
-History of Present illness
-Family History
-Social History
-Dietary Habits
-Medications
-Procedure
-Results
-Assessment and plan
-
-Rules:
-- Do not skip important information in the summary
-- Remove the patient's name or any personal information
-- Use 'the patient'
-- Write in the third person
-
-Output format:
-- You must write in paragraphs
-"""
-
-    def produce_notes(self, llm: LLMService) -> str:
+    def produce_notes(self, cid: str, pid: str, file_id: str) -> str:
+        self.log_workflow(
+            'INFO',  cid, 'Calling the LLM to summarize', 'processing')
+        self.llmopts = LLMOpts(
+            type="azure",
+            temperature=0.1,
+            model=self.settings.chat_model,
+        )
         messages: list[GPTMessage] = [
             GPTMessage(role="system",
                        content=self.system_prompt),
             GPTMessage(role="user", content=self.transcript_text)
         ]
-        self.medical_notes = llm.completion(self.llmopts, messages)
+        self.medical_notes = self.llm.completion(self.llmopts, messages)
+        self.log_transcription.insert(
+            cid, pid, file_id, self.message.metadata.file_url, self.transcript_text, self.medical_notes, 'processed')
 
     def pre_validate(self) -> tuple[bool, str]:
-        if not bool(self.message.metadata.file_url):
-            return (False, "No file_path was provided")
-
         if not self.blob_container.check_blob(self.message.metadata.file_url):
             return (False, "Invalid blob")
 
@@ -127,42 +86,7 @@ Output format:
         else:
             return (False, "No content or notes")
 
-    async def process(self, message: Message):
-
-        await asyncio.sleep(.1)
-
-        # Get a processing ID
-        cid = message.id
-        pid = message.pid
-        file_id = message.metadata.file_id
-
-        # Receive Message and add logging
-        self.message = message
-
-        click.echo(click.style(
-            f"{datetime.now().isoformat()} : Processing Medical Notes", fg='yellow'))
-        click.echo(f"{self.message}")
-        self.log_workflow(
-            'INFO', cid, f'Medical notes: {self.message.metadata.file_url}', 'processing')
-
-        if not bool(self.message.metadata.file_url):
-            raise CompletedException("No file_path was provided")
-
-        # Get the blob name, file name and extension
-        self.blob_name = get_blob_name(self.message.metadata.file_url)
-        (file_name, file_ext) = get_file_name_and_extension(
-            self.message.metadata.file_url)
-        self.file_name = file_name
-        self.file_ext = file_ext
-
-        # Pre-validate
-        (status, err) = self.pre_validate()
-        if not status:
-            self.log_workflow('ERROR', cid, f'error-{err}', 'failure')
-            return
-        self.log_transcription.insert(
-            cid, pid, file_id, self.message.metadata.file_url, '', '')
-
+    def find_provider_template(self, cid: str, pid: str) -> str:
         # Find the physician's specialty and template or set to GP if not found
         # NOTE: Convetion, the audio file should carry the physician's id. For example, jmdoe-consultation.wav
         self.log_workflow(
@@ -176,8 +100,15 @@ Output format:
             self.specialty = 'GP'
             self.log_workflow(
                 'INFO',  cid, f'Unable to find the physician template. Setting it to: GP', 'processing')
-        self.get_system_prompt()
 
+    def get_blob_information(self):
+        self.blob_name = get_blob_name(self.message.metadata.file_url)
+        (file_name, file_ext) = get_file_name_and_extension(
+            self.message.metadata.file_url)
+        self.file_name = file_name
+        self.file_ext = file_ext
+
+    def download_blob(self, cid: str) -> str:
         # Download the audio file
         self.log_workflow(
             'INFO',  cid, 'Downloading blob', 'processing')
@@ -190,6 +121,9 @@ Output format:
                 'ERROR',  cid, 'error-Unable to download blob', 'failure')
             return  # raise Exception("Unable to download blob")
 
+        return file_path
+
+    def convert_audio_to_text(self, cid: str, pid: str, file_id: str, file_path: str):
         # Transcribe the audio file
         self.log_workflow(
             'INFO',  cid, f'Transcribing file: {file_path}', 'processing')
@@ -222,14 +156,46 @@ Output format:
             delete_file(file_path)
             delete_file(transcribed_file)
 
-        llm = LLMService(get_aoai_client_instance())
-        self.llmopts = LLMOpts(
-            type="azure",
-            temperature=0.1,
-            model=self.settings.chat_model,
-        )
-        self.produce_notes(llm)
+    def process(self, message: Message):
 
+        click.echo(click.style(
+            f"{datetime.now().isoformat()} : Received Medical Notes message", fg='yellow'))
+
+        # Receive Message and add logging
+        self.message = message
+
+        # Get a processing ID
+        cid = self.message.id
+        pid = self.message.pid
+        file_id = self.message.metadata.file_id
+
+        self.log_workflow(
+            'INFO', cid, f'Received Medical notes: {self.message.metadata.file_url}', 'Received')
+
+        if not bool(self.message.metadata.file_url):
+            raise CompletedException(
+                "the file file_url is required and it was empty.")
+
+        self.get_blob_information()
+
+        # Pre-validate
+        (status, err) = self.pre_validate()
+        if not status:
+            self.log_workflow('ERROR', cid, f'error-{err}', 'failure')
+            return
+
+        self.log_workflow(
+            'INFO', cid, f'Medical notes: {self.message.metadata.file_url}', 'processing')
+
+        file_path = self.download_blob(self.message.metadata.file_url)
+
+        self.convert_audio_to_text(cid, pid, file_id, file_path)
+
+        self.find_provider_template(cid, pid)
+
+        self.produce_notes(cid, pid, file_id)
+
+        # Post-validate
         (status, error_message) = self.post_validate()
         if status:
             self.log_workflow(
@@ -237,11 +203,9 @@ Output format:
             self.log_transcription.insert(
                 cid, pid, file_id, self.message.metadata.file_url, self.transcript_text, self.medical_notes, 'completed')
             click.echo(click.style(
-                f"{datetime.now(timezone.utc).isoformat()}: Medical notes completed ", fg='green'), nl=False)
+                f"{datetime.now(timezone.utc).isoformat()}: Processing Medical notes succesful.", fg='green'), nl=False)
         else:
             self.log_workflow(
                 'ERROR',  cid, f'failure-{error_message}', 'failure')
             click.echo(click.style(
-                f"{datetime.now(timezone.utc).isoformat()} failure ", fg='red'), nl=False)
-
-            # raise Exception("Unable to download blob")
+                f"{datetime.now(timezone.utc).isoformat()}: Processing Medal notes failure. Please check the logs.", fg='red'), nl=False)
