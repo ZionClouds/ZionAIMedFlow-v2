@@ -51,9 +51,9 @@ graph LR
 
 
 
-### Required `.env` file
+### Required `src/.env` file
 
-Please create an `.env` file at the root folder with the following settings:
+Please create an `src/.env` file at the root folder with the following settings:
 
 ```bash
 # Storage
@@ -79,7 +79,7 @@ SB_LISTEN="Endpoint=sb://<NAME>.servicebus.windows.net/;SharedAccessKeyName=DIPS
 
 # Speech
 SPEECH_REGION=centralus
-SPEECH_API_KEY=b04cbdc36763482884bc5a09309541e6
+SPEECH_API_KEY=<KEY>
 
 # MongoDB
 MONGO_DB="mongodb://<NAME>:<PWD>@mgdipsdevcus.mongo.cosmos.azure.com:10255/?ssl=true&retrywrites=false&replicaSet=globaldb&maxIdleTimeMS=120000&appName=@mgdipsdevcus@"
@@ -90,11 +90,12 @@ MONGO_DB="mongodb://<NAME>:<PWD>@mgdipsdevcus.mongo.cosmos.azure.com:10255/?ssl=
   - `python -m venv .venv`
 - Activate the environment:
   - `source .venv\bin\activate`
-- Install the requirements:
+- Navigate to `src`
 - Install the requirements: `pip install -r requirements.txt`
 
 ### DIPs - Python
 
+- Navigate to `src`
 - Install DIPs as a CLI: `sh setup.sh`
 - Make sure the Python environment is activated
 - Open: dpsiw\cmd\root.py
@@ -108,6 +109,14 @@ if __name__ == "__main__":
 
 if __name__ == "__main__":
     consume()
+```
+
+### Test message
+
+```
+#alias dips=dpsiw
+dpsiw produce
+dpsiw consume
 ```
 
 ### DIPs - Azure Function
@@ -147,7 +156,7 @@ This Azure function monitor a Blob storage container and when a user adds a blob
 
 #### Python Backend
 
-- Open: `MyMDNotes\backend\root.py`
+- Open: `MyMDNotes\backend\appp.py`
 - Make sure the Python environment is activated
 - Start the debugger
 
