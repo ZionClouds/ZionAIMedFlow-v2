@@ -91,10 +91,13 @@ param appRegistrationSecret string
 
 param storageAccountContainerName string = 'docs'
 param storageAccountContainerTokenStore string = 'tokenstore'
+param storageAccountContainerFunction string = 'function'
 
 //var resourceToken = toLower(uniqueString(subscription().id, environmentName, location))
 var resourceToken = toLower(uniqueString(resourceGroup().id, environmentName, location))
 var tags = { 'azd-env-name': environmentName }
+
+var serviceBusQueueName = 'dips-messages'
 
 // resource resourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' = {
 //   name: 'rg-${environmentName}'
@@ -158,33 +161,40 @@ module openAi 'core/ai/cognitiveservices.bicep' = {
   }
 }
 
-module storage 'core/storage/storage.bicep' = {
+module speechService 'core/ai/cognitiveservices.bicep' = {
+  name: replace('${take(prefix, 12)}aispeechService', '-', '')
   //scope: resourceGroup
-  name: replace('${take(prefix, 12)}aisearchstg', '-', '')
   params: {
+    name: replace('${take(prefix, 12)}aispeechService', '-', '')
     location: location
-    storageAccountName: replace('${take(prefix, 12)}aisearchstg', '-', '')
-    storageAccountType: 'Standard_LRS'
-    storageAccountContainerName: storageAccountContainerName
-    storageAccountContainerTokenStore: storageAccountContainerTokenStore
+    tags: tags
+    sku: {
+      name: 'S0'
+      tier: 'Standard'
+    }
   }
 }
 
-module search 'core/search/search-services.bicep' = {
-  name: 'search'
-  //scope: resourceGroup
+module cosmosMongoDB 'core/database/cosmos/cosmos-account.bicep' = {
+  name: replace('${take(prefix, 12)}cosmosMongoDB', '-', '')
   params: {
-    name: !empty(searchServiceName) ? searchServiceName : '${prefix}-aisearch'
+    name: replace('${take(prefix, 12)}cosmosMongoDB', '-', '')
     location: location
-    semanticSearch: 'standard'
-    disableLocalAuth: true
-    managedIdentityPrincipalId: managedIdentity.outputs.managedIdentityPrincipalId
-    managedIdentityClientId: managedIdentity.outputs.managedIdentityClientId
-    indexName: aiSearchIndexName
-    openAIEndpointURI: openAi.outputs.endpoint
-    openAIAdaModelName: openAiEmbeddingDeploymentName
-    dataSourceStorageResourceID: storage.outputs.storageAccountId
-    managedIdentityResourceID: managedIdentity.outputs.managedIdentityResourceId
+    tags: tags
+    kind: 'MongoDB'
+  }
+}
+
+module storage 'core/storage/storage.bicep' = {
+  //scope: resourceGroup
+  name: replace('${take(prefix, 12)}basestg', '-', '')
+  params: {
+    location: location
+    storageAccountName: replace('${take(prefix, 12)}basestg', '-', '')
+    storageAccountType: 'Standard_LRS'
+    storageAccountContainerName: storageAccountContainerName
+    storageAccountContainerTokenStore: storageAccountContainerTokenStore
+    functionStorageContainerName: storageAccountContainerFunction
   }
 }
 
@@ -195,6 +205,35 @@ module logAnalyticsWorkspace 'core/monitor/loganalytics.bicep' = {
     name: '${prefix}-loganalytics'
     location: location
     tags: tags
+  }
+}
+
+module servicebus 'core/message/servicebus.bicep' = {
+  name: 'servicebus'
+  //scope: resourceGroup
+  params: {
+    serviceBusNamespaceName: replace('${take(prefix, 12)}-servicebus', '-', '')
+    location: location
+    Tags: tags
+    serviceBusQueueName: serviceBusQueueName
+  }
+}
+
+module functionApp 'core/host/function-app.bicep' = {
+  name: 'function-app-mymdnotes'
+  //scope: resourceGroup
+  params: {
+    functionname: replace('${take(prefix, 12)}-mymdnotes', '-', '')
+    location: location
+    Tags: tags
+    userManagedIdentityClientId: managedIdentity.outputs.managedIdentityClientId
+    userManagedIdentityPrincipalId: managedIdentity.outputs.managedIdentityPrincipalId
+    storageAccountName: storage.outputs.storageAccountName
+    lawresourceid: logAnalyticsWorkspace.outputs.id
+    functionStorageContainerName: storage.outputs.storageAccountContainerFunction
+    userManagedIdentity: managedIdentity.outputs.managedIdentityResourceId
+    serviceBusEndpoint: '${servicebus.name}.servicebus.windows.net'
+    serviceBusQueue: serviceBusQueueName
   }
 }
 
@@ -223,6 +262,36 @@ module containerApps 'core/host/container-apps.bicep' = {
   }
 }
 
+module dips 'app/aca.bicep' = {
+  name: 'dips'
+  //scope: resourceGroup
+  params: {
+    name: toLower(replace('${take(prefix, 19)}-caDIPs', '--', '-'))
+    location: location
+    tags: tags
+    identityName: managedIdentity.outputs.managedIdentityName
+    identityId: managedIdentity.outputs.managedIdentityClientId
+    containerAppsEnvironmentName: containerApps.outputs.environmentName
+    imageName: imageNameBackEnd
+    imageTargetPort: imageTargetPortBackEnd
+    openAiDeploymentName: !empty(openAiDeploymentName) ? openAiDeploymentName : 'gpt-35-turbo'
+    openAiEndpoint: openAi.outputs.endpoint
+    openAiType: openAiType
+    openAiApiVersion: openAiApiVersion
+    aiSearchSemanticConfig: aiSearchSemanticConfig
+    appinsights_Connectionstring: monitoring.outputs.applicationInsightsConnectionString
+    appRegistrationClientId: appRegistrationClientId
+    storageEndpoint: storage.outputs.storageEndpointTable
+    clientSecretSettingName: clientSecretSettingName
+    secrets: {
+      microsoftproviderauthenticationsecret: appRegistrationSecret
+    }
+  }
+}
+
+
+
+
 module aca 'app/aca.bicep' = {
   name: 'aca'
   //scope: resourceGroup
@@ -238,8 +307,6 @@ module aca 'app/aca.bicep' = {
     openAiEndpoint: openAi.outputs.endpoint
     openAiType: openAiType
     openAiApiVersion: openAiApiVersion
-    aiSearchEndpoint: search.outputs.endpoint
-    aiSearchIndexName: aiSearchIndexName
     appinsights_Connectionstring: monitoring.outputs.applicationInsightsConnectionString
     appRegistrationClientId: appRegistrationClientId
     clientSecretSettingName: clientSecretSettingName
@@ -267,8 +334,6 @@ module acaBackEnd 'app/aca.bicep' = {
     openAiEndpoint: openAi.outputs.endpoint
     openAiType: openAiType
     openAiApiVersion: openAiApiVersion
-    aiSearchEndpoint: search.outputs.endpoint
-    aiSearchIndexName: aiSearchIndexName
     aiSearchSemanticConfig: aiSearchSemanticConfig
     appinsights_Connectionstring: monitoring.outputs.applicationInsightsConnectionString
     appRegistrationClientId: appRegistrationClientId
@@ -290,6 +355,26 @@ module acaBackEnd 'app/aca.bicep' = {
 //   }
 // }
 
+module cognitiveServicesSpeechRoleAssignment 'core/security/role.bicep' = {
+  //scope: resourceGroup
+  name: 'speech-account-role'
+  params: {
+    principalId: managedIdentity.outputs.managedIdentityPrincipalId
+    roleDefinitionId: '0e75ca1e-0464-4b4d-8b93-68208a576181' // Cognitive Services Speech Contributor
+    principalType: 'ServicePrincipal'
+  }
+}
+
+module serviceBusAccountRole 'core/security/role.bicep' = {
+  //scope: resourceGroup
+  name: 'serviceBus-account-role'
+  params: {
+    principalId: managedIdentity.outputs.managedIdentityPrincipalId
+    roleDefinitionId: '090c5cfd-751d-490a-894a-3ce6f1109419' // Azure Service Bus Data Owner
+    principalType: 'ServicePrincipal'
+  }
+}
+
 module appinsightsAccountRole 'core/security/role.bicep' = {
   //scope: resourceGroup
   name: 'appinsights-account-role'
@@ -300,15 +385,15 @@ module appinsightsAccountRole 'core/security/role.bicep' = {
   }
 }
 
-module aiSearchStorageAccess 'core/security/role.bicep' = {
-  //scope: resourceGroup
-  name: 'storage-blob-data-contributor'
-  params: {
-    principalId: managedIdentity.outputs.managedIdentityPrincipalId
-    roleDefinitionId: 'ba92f5b4-2d11-453d-a403-e96b0029c9fe' //Storage Blob Data Contributor
-    principalType: 'ServicePrincipal'
-  }
-}
+// module aiSearchStorageAccess 'core/security/role.bicep' = {
+//   //scope: resourceGroup
+//   name: 'storage-blob-data-contributor'
+//   params: {
+//     principalId: managedIdentity.outputs.managedIdentityPrincipalId
+//     roleDefinitionId: 'ba92f5b4-2d11-453d-a403-e96b0029c9fe' //Storage Blob Data Contributor
+//     principalType: 'ServicePrincipal'
+//   }
+// }
 
 module acaBackEndStorageTableAccess 'core/security/role.bicep' = {
   //scope: resourceGroup
@@ -381,9 +466,6 @@ output OpenAI__API_Version string = openAiApiVersion
 output OpenAI__Endpoint string = openAi.outputs.endpoint
 output OpenAI__Deployment string = openAiDeploymentName
 output OpenAI__Embedding_Deployment string = openAiEmbeddingDeploymentName
-
-output AzureAISearch__Endpoint string = search.outputs.endpoint
-output AzureAISearch__Index_Name string = aiSearchIndexName
 
 output ApplicationInsights__ConnectionString string = monitoring.outputs.applicationInsightsConnectionString
 output ACAFrontEndUrl string = aca.outputs.SERVICE_ACA_URI

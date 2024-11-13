@@ -8,6 +8,7 @@ from models import *
 from azure.servicebus.aio import ServiceBusClient
 from azure.servicebus import ServiceBusMessage
 from dotenv import load_dotenv
+from azure.identity.aio import DefaultAzureCredential
 
 
 MSG_TYPE_MEDICAL_NOTES = "MedicalNotesAgent"
@@ -19,8 +20,10 @@ app = func.FunctionApp()
 
 async def send_queue_message(correlation_id: str, payload: str):
     queue_name = os.getenv("SB_QUEUE")
-    client = ServiceBusClient.from_connection_string(
-        os.getenv("SB_CONNECTION_STRING"))
+    credential = DefaultAzureCredential()
+    client = ServiceBusClient(os.getenv("SB_ENDPOINT"), credential)
+    # client = ServiceBusClient.from_connection_string(
+    #     os.getenv("SB_CONNECTION_STRING"))
     async with client:
         sender = client.get_queue_sender(queue_name=queue_name)
         # Create a Service Bus message and send it to the queue

@@ -13,8 +13,8 @@ param openAiDeploymentName string
 param openAiEndpoint string
 param openAiApiVersion string
 param openAiType string
-param aiSearchEndpoint string
-param aiSearchIndexName string
+param aiSearchEndpoint string = ''
+param aiSearchIndexName string = ''
 param aiSearchSemanticConfig string = ''
 param appinsights_Connectionstring string
 param storageEndpoint string = ''

@@ -14,6 +14,7 @@ param location string
 param storageAccountName string
 param storageAccountContainerName string = ''
 param storageAccountContainerTokenStore string = ''
+param functionStorageContainerName string = ''
 param baseTime string = utcNow('u')
 
 resource sa 'Microsoft.Storage/storageAccounts@2023-05-01' = {
@@ -29,6 +30,11 @@ resource sa 'Microsoft.Storage/storageAccounts@2023-05-01' = {
 resource blobServices 'Microsoft.Storage/storageAccounts/blobServices@2023-05-01' = if (!empty(storageAccountContainerName)) {
   name: 'default'
   parent: sa
+}
+
+resource funcStorageContainerName 'Microsoft.Storage/storageAccounts/blobServices/containers@2023-05-01' = if (!empty(functionStorageContainerName)) {
+  name: functionStorageContainerName
+  parent: blobServices
 }
 
 resource symbolicname 'Microsoft.Storage/storageAccounts/blobServices/containers@2023-05-01' = if (!empty(storageAccountContainerName)) {
@@ -56,6 +62,7 @@ output storageAccountName string = sa.name
 output storageAccountId string = sa.id
 output storageEndpointTable string = sa.properties.primaryEndpoints.table
 output storageEndpointBlob string = sa.properties.primaryEndpoints.blob
+output storageAccountContainerFunction string = functionStorageContainerName
 
 output storageToken string = listServiceSAS(sa.name,'2024-01-01', {
   canonicalizedResource: '/blob/${sa.name}/${storageAccountContainerTokenStore}'
