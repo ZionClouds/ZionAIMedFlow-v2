@@ -4,25 +4,34 @@
 
 ```mermaid
 graph LR
-  P((Provider))--Uploads<br>Audio<br>File-->S(Azure<br>Blob<br/>Storage)
+  P((Provider))
+  S(Azure<br>Blob<br/>Storage)
+  DI(DIPs<br/>Worker)
+  AF(Azure<br>Function)
+  SB(Azure<br/>Service Bus)
+  A(Agent)
+  ST(Azure<br>Speech<br>Transcription)
+  O(Azure<br/>OpenAI<br>Completion)
+  DB(Azure<br/>CosmosDB<br/>MongoDb)
+  UD(User<br>Dashboard)
 
-  Az(Azure<br>Function)<--Storage<br/>Trigger-->S
-  Az--Puts<br/>MedicalNotesAgent<br/>message-->Q(Azure<br/>Service Bus)
-  
-  Q--Listens-->W(DIPs<br/>Worker)
-  W--Invokes-->A(Agent)
-  A<--Calls-->SP(Azure<br>Speech<br>Transcription)
-  A<--Calls-->O(Azure<br/>OpenAI<br>Completion)
-  A<--Writes<br/>Telemetry<br/>Job Progress-->M(Azure<br/>CosmosDB<br/>MongoDb)
-  D(User<br>Dashboard)--view/edit-->M
-
+  P--->|Uploads<br>Audio<br>File|S
+  AF--->|Storage<br/>Trigger|S
+  SB<--->|Puts<br/>MedicalNotesAgent<br/>message|AF
+  SB<--->|Listens|DI
+  DI--->|Read<br>Blob Data|S
+  DI--->|Invokes|A
+  A<--->|Calls|ST
+  A<--->|Calls|O
+  A<--->|Writes<br>Telemetry<br>Job Progress|DB
+  UD--->|view/edit|DB
 ```
 
 ## ZionMedFlow - Frontend
 
 ```mermaid
 graph LR
-   F(React SPA<br/>Frontend) --> B(Python<br/>Backend)   
+   F(React SPA<br/>Frontend) --> B(Python<br/>Backend)
    B --> M(Azure<br/>CosmosDB</br>MongoDB)
    B --> ST(Azure<br>Blob<br/>Storage)
 ```
@@ -164,7 +173,7 @@ This Azure function monitor a Blob storage container and when a user adds a blob
 
 > Note: I switched from using NPM to using [bun.sh](https://bun.sh/).
 
-- Install the packages: 
+- Install the packages:
   - `npm install` or `bun install`
-- Launch the site: 
+- Launch the site:
   - `bun run dev`
