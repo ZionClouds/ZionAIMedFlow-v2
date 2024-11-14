@@ -96,6 +96,7 @@ resource azfunctionsite 'Microsoft.Web/sites@2023-01-01' = {
       hyperV: false
       siteConfig: {
           numberOfWorkers: 1
+          linuxFxVersion: 'PYTHON|3.11'
           acrUseManagedIdentityCreds: false
           alwaysOn: false
           ipSecurityRestrictions: [
