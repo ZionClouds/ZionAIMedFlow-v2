@@ -1,6 +1,7 @@
 import logging
 import os
 from urllib.parse import urlparse
+from azure.identity import DefaultAzureCredential
 from azure.storage.blob import BlobServiceClient
 import click
 
@@ -55,9 +56,10 @@ class AzureBlobContainer:
             self.blob_service_client = AzureBlobContainer.get_blob_service_client()
 
     @staticmethod
-    def get_blob_service_client(account_url=settings.storage_url,
-                                credential=settings.storage_key) -> BlobServiceClient:
-        return BlobServiceClient(account_url, credential)
+    def get_blob_service_client(account_url=settings.storage_url) -> BlobServiceClient:
+        credential = DefaultAzureCredential()
+        blob_service_client = BlobServiceClient(account_url, credential=credential)
+        return blob_service_client
 
     def create_container(self):
         try:

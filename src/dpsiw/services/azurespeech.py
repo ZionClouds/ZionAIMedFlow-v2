@@ -4,6 +4,7 @@ import uuid
 from azure.storage.queue import QueueClient
 import azure.cognitiveservices.speech as speechsdk
 from dpsiw.services.fileservices import append_text_file, delete_file, get_file_name_and_extension
+from azure.identity import DefaultAzureCredential, get_bearer_token_provider
 
 
 class AzSpeechHandler:
@@ -47,13 +48,13 @@ class AzSpeechHandler:
 
 class TranscribeOpts:
     """
-    TranscribeOpts(**kargs): Transcriber options  
+    TranscribeOpts(**kargs): Transcriber options
     Parameters:
         file_path: str | None = None
         queue_client: QueueClient | None = None
         url: str | None = None
         reconrding_language: str = 'en-US'
-        output_destination: str = 'file'        
+        output_destination: str = 'file'
     """
 
     def __init__(self, **kargs) -> None:
@@ -114,9 +115,14 @@ class AzureSTT(Transcriber):
     Azure Speech to text service
     """
 
-    def __init__(self, speech_key: str, service_region: str = 'centralus', mock: bool = False) -> str:
-        self.speech_key = speech_key
+    # def __init__(self, speech_key: str, service_region: str = 'centralus', mock: bool = False) -> str:
+    #     self.speech_key = speech_key
+    #     self.service_region = service_region
+    #     self.mock = mock
+
+    def __init__(self, azSpeechResourceId: str, service_region: str = 'centralus', mock: bool = False) -> str:
         self.service_region = service_region
+        self.azSpeechResourceId = azSpeechResourceId
         self.mock = mock
 
     def transcribe(self, opts: TranscribeOpts | None = None) -> str:
@@ -126,8 +132,11 @@ class AzureSTT(Transcriber):
 
         # This example requires environment variables named "SPEECH_KEY" and "SPEECH_REGION"
         if not self.mock:
-            speech_config = speechsdk.SpeechConfig(
-                subscription=self.speech_key, region=self.service_region)
+            # speech_config = speechsdk.SpeechConfig(
+            #     subscription=self.speech_key, region=self.service_region)
+            token_provider = get_bearer_token_provider(DefaultAzureCredential(), "https://cognitiveservices.azure.com/.default")
+            authorizationToken = "aad#" + self.azSpeechResourceId + "#" + token_provider()
+            speech_config = speechsdk.SpeechConfig(auth_token=authorizationToken,region=self.service_region)
             speech_config.speech_recognition_language = opts.recording_language
 
             audio_config = speechsdk.audio.AudioConfig(filename=opts.file_path)

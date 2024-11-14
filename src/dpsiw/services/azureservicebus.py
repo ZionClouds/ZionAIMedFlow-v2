@@ -2,6 +2,7 @@ import logging
 from azure.servicebus.aio import ServiceBusClient
 from azure.servicebus import ServiceBusMessage
 from azure.servicebus.management import ServiceBusAdministrationClient
+from azure.identity.aio import DefaultAzureCredential
 import click
 
 from dpsiw.services.settings import get_settings_instance
@@ -10,9 +11,12 @@ from dpsiw.services.settings import get_settings_instance
 class AzureSB:
     def __init__(self, queue_name: str, conn_str: str):
         self.queue_name = queue_name
-        self.client = ServiceBusClient.from_connection_string(conn_str)
-        self.adminclient = ServiceBusAdministrationClient.from_connection_string(
-            conn_str=conn_str)
+        #self.client = ServiceBusClient.from_connection_string(conn_str)
+        credential = DefaultAzureCredential()
+        self.client = ServiceBusClient(conn_str, credential)
+        # self.adminclient = ServiceBusAdministrationClient.from_connection_string(
+        #     conn_str=conn_str)
+        self.adminclient = ServiceBusAdministrationClient(conn_str, credential)
         self.sender = self.client.get_queue_sender(queue_name=queue_name)
         self.receiver = self.client.get_queue_receiver(queue_name=queue_name)
 

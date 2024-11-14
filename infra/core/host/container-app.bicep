@@ -178,7 +178,7 @@ resource acaAuthConfig 'Microsoft.App/containerApps/authConfigs@2024-03-01' = {
       redirectToProvider: 'azureactivedirectory'
     }
     identityProviders: {
-      azureActiveDirectory: {
+      azureActiveDirectory: !empty(appRegistrationClientId) ? {
         registration: {
           clientId: appRegistrationClientId
           openIdIssuer: 'https://sts.windows.net/${tenant().tenantId}/v2.0'
@@ -189,7 +189,7 @@ resource acaAuthConfig 'Microsoft.App/containerApps/authConfigs@2024-03-01' = {
             'scope=openid profile email offline_access'
           ]
         }:{}
-      }
+      }:{}
     }
     login:{
       preserveUrlFragmentsForLogins: false

@@ -70,6 +70,9 @@ param imageTargetPortFrontEnd string = '80'
 @description('Container Image Name BackEnd')
 param imageNameBackEnd string = 'welasco/yak-backend:latest'
 
+@description('Container Image Name DIPs')
+param imageNameDIPs string = 'welasco/dips:latest'
+
 @description('Container Image TargetPort BackEnd')
 param imageTargetPortBackEnd string = '80'
 
@@ -187,10 +190,10 @@ module cosmosMongoDB 'core/database/cosmos/cosmos-account.bicep' = {
 
 module storage 'core/storage/storage.bicep' = {
   //scope: resourceGroup
-  name: replace('${take(prefix, 12)}basestg', '-', '')
+  name: replace('${take(prefix, 12)}medicalnotesin', '-', '')
   params: {
     location: location
-    storageAccountName: replace('${take(prefix, 12)}basestg', '-', '')
+    storageAccountName: replace('${take(prefix, 12)}medicalnotesin', '-', '')
     storageAccountType: 'Standard_LRS'
     storageAccountContainerName: storageAccountContainerName
     storageAccountContainerTokenStore: storageAccountContainerTokenStore
@@ -270,80 +273,122 @@ module dips 'app/aca.bicep' = {
     location: location
     tags: tags
     identityName: managedIdentity.outputs.managedIdentityName
-    identityId: managedIdentity.outputs.managedIdentityClientId
     containerAppsEnvironmentName: containerApps.outputs.environmentName
-    imageName: imageNameBackEnd
+    imageName: imageNameDIPs
     imageTargetPort: imageTargetPortBackEnd
-    openAiDeploymentName: !empty(openAiDeploymentName) ? openAiDeploymentName : 'gpt-35-turbo'
-    openAiEndpoint: openAi.outputs.endpoint
-    openAiType: openAiType
-    openAiApiVersion: openAiApiVersion
-    aiSearchSemanticConfig: aiSearchSemanticConfig
-    appinsights_Connectionstring: monitoring.outputs.applicationInsightsConnectionString
     appRegistrationClientId: appRegistrationClientId
-    storageEndpoint: storage.outputs.storageEndpointTable
-    clientSecretSettingName: clientSecretSettingName
-    secrets: {
-      microsoftproviderauthenticationsecret: appRegistrationSecret
-    }
+    acaEnviromentVariables: [
+      {
+        name: 'AZURE_CLIENT_ID'
+        value: managedIdentity.outputs.managedIdentityClientId
+      }
+      {
+        name: 'TYPE'
+        value: openAiType
+      }
+      {
+        name: 'CHAT_MODEL'
+        value: openAiDeploymentName
+      }
+      {
+        name: 'ENDPOINT'
+        value: openAi.outputs.endpoint
+      }
+      {
+        name: 'VERSION'
+        value: openAiApiVersion
+      }
+      {
+        name: 'SPEECH_REGION'
+        value: location
+      }
+      {
+        name: 'SPEECH_RESOURCE_ID'
+        value: speechService.outputs.id
+      }
+      {
+        name: 'AZURE_COSMOS_LISTCONNECTIONSTRINGURL'
+        value: 'https://management.azure.com/subscriptions/${subscription().subscriptionId}/resourceGroups/${resourceGroup().name}/providers/Microsoft.DocumentDB/databaseAccounts/${cosmosMongoDB.name}/listConnectionStrings?api-version=2024-08-15'
+      }
+      {
+        name: 'STORAGE_URL'
+        value: storage.outputs.storageEndpointBlob
+      }
+      {
+        name: 'SB_CONNECTION_STRING'
+        value: '${servicebus.name}.servicebus.windows.net'
+      }
+      {
+        name: 'SB_QUEUE'
+        value: 'dips-messages'
+      }
+      {
+        name: 'APPLICATIONINSIGHTS__CONNECTIONSTRING'
+        value: monitoring.outputs.applicationInsightsConnectionString
+      }
+      {
+        name: 'PORT'
+        value: '80'
+      }
+    ]
   }
 }
 
 
 
 
-module aca 'app/aca.bicep' = {
-  name: 'aca'
-  //scope: resourceGroup
-  params: {
-    name: replace('${take(prefix, 19)}-ca', '--', '-')
-    location: location
-    tags: tags
-    containerAppsEnvironmentName: containerApps.outputs.environmentName
-    imageName: imageNameFrontEnd
-    imageTargetPort: imageTargetPortFrontEnd
-    acaBackEndUri: acaBackEnd.outputs.SERVICE_ACA_URI
-    openAiDeploymentName: openAiDeploymentName
-    openAiEndpoint: openAi.outputs.endpoint
-    openAiType: openAiType
-    openAiApiVersion: openAiApiVersion
-    appinsights_Connectionstring: monitoring.outputs.applicationInsightsConnectionString
-    appRegistrationClientId: appRegistrationClientId
-    clientSecretSettingName: clientSecretSettingName
-    tokenStoreSASUrlSettingName: storageAccountContainerTokenStore
-    secrets: {
-      tokenstore: '${storage.outputs.storageEndpointBlob}${storageAccountContainerTokenStore}?${storage.outputs.storageToken}'
-      microsoftproviderauthenticationsecret: appRegistrationSecret
-    }
-  }
-}
+// module aca 'app/aca.bicep' = {
+//   name: 'aca'
+//   //scope: resourceGroup
+//   params: {
+//     name: replace('${take(prefix, 19)}-ca', '--', '-')
+//     location: location
+//     tags: tags
+//     containerAppsEnvironmentName: containerApps.outputs.environmentName
+//     imageName: imageNameFrontEnd
+//     imageTargetPort: imageTargetPortFrontEnd
+//     acaBackEndUri: acaBackEnd.outputs.SERVICE_ACA_URI
+//     openAiDeploymentName: openAiDeploymentName
+//     openAiEndpoint: openAi.outputs.endpoint
+//     openAiType: openAiType
+//     openAiApiVersion: openAiApiVersion
+//     appinsights_Connectionstring: monitoring.outputs.applicationInsightsConnectionString
+//     appRegistrationClientId: appRegistrationClientId
+//     clientSecretSettingName: clientSecretSettingName
+//     tokenStoreSASUrlSettingName: storageAccountContainerTokenStore
+//     secrets: {
+//       tokenstore: '${storage.outputs.storageEndpointBlob}${storageAccountContainerTokenStore}?${storage.outputs.storageToken}'
+//       microsoftproviderauthenticationsecret: appRegistrationSecret
+//     }
+//   }
+// }
 
-module acaBackEnd 'app/aca.bicep' = {
-  name: 'acaBackEnd'
-  //scope: resourceGroup
-  params: {
-    name: toLower(replace('${take(prefix, 19)}-caBackEnd', '--', '-'))
-    location: location
-    tags: tags
-    identityName: managedIdentity.outputs.managedIdentityName
-    identityId: managedIdentity.outputs.managedIdentityClientId
-    containerAppsEnvironmentName: containerApps.outputs.environmentName
-    imageName: imageNameBackEnd
-    imageTargetPort: imageTargetPortBackEnd
-    openAiDeploymentName: !empty(openAiDeploymentName) ? openAiDeploymentName : 'gpt-35-turbo'
-    openAiEndpoint: openAi.outputs.endpoint
-    openAiType: openAiType
-    openAiApiVersion: openAiApiVersion
-    aiSearchSemanticConfig: aiSearchSemanticConfig
-    appinsights_Connectionstring: monitoring.outputs.applicationInsightsConnectionString
-    appRegistrationClientId: appRegistrationClientId
-    storageEndpoint: storage.outputs.storageEndpointTable
-    clientSecretSettingName: clientSecretSettingName
-    secrets: {
-      microsoftproviderauthenticationsecret: appRegistrationSecret
-    }
-  }
-}
+// module acaBackEnd 'app/aca.bicep' = {
+//   name: 'acaBackEnd'
+//   //scope: resourceGroup
+//   params: {
+//     name: toLower(replace('${take(prefix, 19)}-caBackEnd', '--', '-'))
+//     location: location
+//     tags: tags
+//     identityName: managedIdentity.outputs.managedIdentityName
+//     identityId: managedIdentity.outputs.managedIdentityClientId
+//     containerAppsEnvironmentName: containerApps.outputs.environmentName
+//     imageName: imageNameBackEnd
+//     imageTargetPort: imageTargetPortBackEnd
+//     openAiDeploymentName: !empty(openAiDeploymentName) ? openAiDeploymentName : 'gpt-35-turbo'
+//     openAiEndpoint: openAi.outputs.endpoint
+//     openAiType: openAiType
+//     openAiApiVersion: openAiApiVersion
+//     aiSearchSemanticConfig: aiSearchSemanticConfig
+//     appinsights_Connectionstring: monitoring.outputs.applicationInsightsConnectionString
+//     appRegistrationClientId: appRegistrationClientId
+//     storageEndpoint: storage.outputs.storageEndpointTable
+//     clientSecretSettingName: clientSecretSettingName
+//     secrets: {
+//       microsoftproviderauthenticationsecret: appRegistrationSecret
+//     }
+//   }
+// }
 
 // module aiSearchRole 'core/security/role.bicep' = {
 //   //scope: resourceGroup
@@ -454,9 +499,9 @@ output AZURE_OPENAI_ENDPOINT string = openAi.outputs.endpoint
 output AZURE_OPENAI_RESOURCE string = openAi.outputs.name
 output AZURE_OPENAI_SKU_NAME string = openAi.outputs.skuName
 
-output SERVICE_ACA_NAME string = aca.outputs.SERVICE_ACA_NAME
-output SERVICE_ACA_URI string = aca.outputs.SERVICE_ACA_URI
-output SERVICE_ACA_IMAGE_NAME string = aca.outputs.SERVICE_ACA_IMAGE_NAME
+// output SERVICE_ACA_NAME string = aca.outputs.SERVICE_ACA_NAME
+// output SERVICE_ACA_URI string = aca.outputs.SERVICE_ACA_URI
+// output SERVICE_ACA_IMAGE_NAME string = aca.outputs.SERVICE_ACA_IMAGE_NAME
 
 output AZURE_CONTAINER_ENVIRONMENT_NAME string = containerApps.outputs.environmentName
 output APPINSIGHTS_CONNECTIONSTRING string = monitoring.outputs.applicationInsightsConnectionString
@@ -468,4 +513,4 @@ output OpenAI__Deployment string = openAiDeploymentName
 output OpenAI__Embedding_Deployment string = openAiEmbeddingDeploymentName
 
 output ApplicationInsights__ConnectionString string = monitoring.outputs.applicationInsightsConnectionString
-output ACAFrontEndUrl string = aca.outputs.SERVICE_ACA_URI
+//output ACAFrontEndUrl string = aca.outputs.SERVICE_ACA_URI

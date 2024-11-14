@@ -4,6 +4,7 @@ import uuid
 
 import click
 from openai import AzureOpenAI
+from azure.identity.aio import DefaultAzureCredential, get_bearer_token_provider
 from dpsiw.constants import constants
 from dpsiw.exceptions import CompletedException, DeadLetteredException
 from dpsiw.services.azureblob import AzureBlobContainer, get_blob_name, get_file_name_and_extension
@@ -13,6 +14,7 @@ from dpsiw.services.llmservice import LLMService
 from dpsiw.services.mgdatabase import MongoDBService, TranscriptionsRepository
 from dpsiw.services.settings import Settings, get_settings_instance
 from dpsiw.tools.gpttool import GPTMessage
+
 
 
 from .agent import Agent
@@ -29,8 +31,12 @@ def get_aoai_client_instance():
     """
     global aoaiclient
     if aoaiclient is None:
+        token_provider = get_bearer_token_provider(
+            DefaultAzureCredential(), "https://cognitiveservices.azure.com/.default"
+        )
         aoaiclient = AzureOpenAI(azure_endpoint=settings.endpoint,
-                                 api_key=settings.api_key,
+                                 azure_ad_token_provider=token_provider,
+                                 #api_key=settings.api_key,
                                  api_version=settings.version)
     return aoaiclient
 
@@ -147,8 +153,10 @@ class MedicalNotesAgent(Agent):
         try:
             opts = TranscribeOpts(
                 file_path=file_path)
+            # tts: Transcriber = AzureSTT(
+            #     self.settings.speech_key, self.settings.speech_region)
             tts: Transcriber = AzureSTT(
-                self.settings.speech_key, self.settings.speech_region)
+                self.settings.azSpeechResourceId, self.settings.speech_region)
             transcribed_file = tts.transcribe(opts=opts)
             self.transcript_text = read_text_file(transcribed_file)
 

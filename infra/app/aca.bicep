@@ -3,22 +3,13 @@ param location string = resourceGroup().location
 param tags object = {}
 
 param identityName string = ''
-param identityId string = ''
 param containerAppsEnvironmentName string
 param imageName string
 param imageTargetPort string = '80'
-param acaBackEndUri string = ''
 param serviceName string = 'aca'
-param openAiDeploymentName string
-param openAiEndpoint string
-param openAiApiVersion string
-param openAiType string
-param aiSearchEndpoint string = ''
-param aiSearchIndexName string = ''
-param aiSearchSemanticConfig string = ''
-param appinsights_Connectionstring string
-param storageEndpoint string = ''
 param appRegistrationClientId string = ''
+param acaEnviromentVariables array = []
+
 
 @description('The secrets required for the container')
 @secure()
@@ -41,60 +32,7 @@ module app '../core/host/container-app-upsert.bicep' = {
     imageName: imageName
     appRegistrationClientId: appRegistrationClientId
     clientSecretSettingName: clientSecretSettingName
-    env: [
-      {
-        name: 'AZURE_CLIENT_ID'
-        value: !empty(identityId) ? identityId : ''
-      }
-      {
-        name: 'AI_SEARCH_ENDPOINT'
-        value: aiSearchEndpoint
-      }
-      {
-        name: 'AI_SEARCH_INDEX_NAME'
-        value: aiSearchIndexName
-      }
-      {
-        name: 'AI_SEARCH_SEMANTIC_CONFIG'
-        value: aiSearchSemanticConfig
-      }
-      {
-        name: 'backendUri'
-        value: '${acaBackEndUri}/api/'
-      }
-      {
-        name: 'OPENAI__TYPE'
-        value: openAiType
-      }
-      {
-        name: 'GPT_OPENAI_API_VERSION'
-        value: openAiApiVersion
-      }
-      {
-        name: 'GPT_OPENAI_ENDPOINT'
-        value: openAiEndpoint
-      }
-      {
-        name: 'GPT_OPENAI_DEPLOYMENT_NAME'
-        value: openAiDeploymentName
-      }
-      {
-        name: 'APPLICATIONINSIGHTS__CONNECTIONSTRING'
-        value: appinsights_Connectionstring
-      }
-      {
-        name: 'PORT'
-        value: imageTargetPort
-      }
-      {
-        name: 'AZURE_TABLES_ENDPOINT'
-        value: storageEndpoint
-      }
-      {
-        name: 'AppDebug'
-        value: 'false'
-      }
-    ]
+    env: acaEnviromentVariables
     //secrets: secrets
     secrets: secrets
     targetPort: int(imageTargetPort)
