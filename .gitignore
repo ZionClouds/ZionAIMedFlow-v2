@@ -170,5 +170,5 @@ __azurite*
 *.wav
 downloads/*
 !downloads/.gitkeep
-*.zip
+#*.zip
 *.tar.gz
