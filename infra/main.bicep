@@ -171,6 +171,7 @@ module speechService 'core/ai/cognitiveservices.bicep' = {
     name: replace('${take(prefix, 12)}aispeechService', '-', '')
     location: location
     tags: tags
+    kind: 'SpeechServices'
     sku: {
       name: 'S0'
       tier: 'Standard'
@@ -212,7 +213,7 @@ module logAnalyticsWorkspace 'core/monitor/loganalytics.bicep' = {
 }
 
 module servicebus 'core/message/servicebus.bicep' = {
-  name: 'servicebus'
+  name: replace('${take(prefix, 12)}-servicebus', '-', '')
   //scope: resourceGroup
   params: {
     serviceBusNamespaceName: replace('${take(prefix, 12)}-servicebus', '-', '')

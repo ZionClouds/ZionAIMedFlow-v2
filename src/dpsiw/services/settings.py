@@ -31,7 +31,7 @@ class Settings:
         if not bool(self.type) or not bool(self.chat_model) \
                 or not bool(self.endpoint) or not bool(self.version) \
                 or not bool(self.speech_region) or not bool(self.azSpeechResourceId) \
-                or not bool(self.mongo_conn_str) or not bool(self.storage_url) \
+                or not bool(self.storage_url) \
                 or not bool(self.sb_connection_string) \
                 or not bool(self.sb_queue_name):
             # os exist
