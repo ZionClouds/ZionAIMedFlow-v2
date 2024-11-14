@@ -2,7 +2,7 @@ metadata description = 'Creates an Azure Cosmos DB account.'
 param name string
 param location string = resourceGroup().location
 param tags object = {}
-param freeTier bool = true
+param freeTier bool = false
 
 @allowed([ 'GlobalDocumentDB', 'MongoDB', 'Parse' ])
 param kind string

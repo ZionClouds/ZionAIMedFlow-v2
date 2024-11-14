@@ -7,6 +7,8 @@ param serviceBusQueueName string
 @description('Location for all resources.')
 param location string = resourceGroup().location
 
+param tier string = 'Basic'
+
 param Tags object = {}
 
 resource serviceBusNamespace 'Microsoft.ServiceBus/namespaces@2024-01-01' = {
@@ -14,7 +16,7 @@ resource serviceBusNamespace 'Microsoft.ServiceBus/namespaces@2024-01-01' = {
   tags: Tags
   location: location
   sku: {
-    name: 'Basic'
+    name: tier
   }
   properties: {
     publicNetworkAccess: 'Enabled'
@@ -30,11 +32,11 @@ resource serviceBusQueue 'Microsoft.ServiceBus/namespaces/queues@2024-01-01' = {
     maxSizeInMegabytes: 1024
     requiresDuplicateDetection: false
     requiresSession: false
-    defaultMessageTimeToLive: 'P10675199DT2H48M5.4775807S'
+    defaultMessageTimeToLive: tier == 'Basic' ? null : 'P10675199DT2H48M5.4775807S'
     deadLetteringOnMessageExpiration: false
     duplicateDetectionHistoryTimeWindow: 'PT10M'
     maxDeliveryCount: 10
-    autoDeleteOnIdle: 'P10675199DT2H48M5.4775807S'
+    autoDeleteOnIdle: tier == 'Basic' ? null : 'P10675199DT2H48M5.4775807S'
     enablePartitioning: false
     enableExpress: false
   }

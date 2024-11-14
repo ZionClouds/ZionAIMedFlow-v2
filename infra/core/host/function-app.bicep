@@ -48,7 +48,7 @@ resource deploymentScript 'Microsoft.Resources/deploymentScripts@2020-10-01' = {
         value: loadFileAsBase64('../../../src/azurefunctions/mymdnotes.zip')
       }
     ]
-    scriptContent: 'echo "$CONTENT" > ${tempfilename} && cat ${tempfilename} | base64 -d > ${filename} && az login --identity --username ${userManagedIdentityClientId} && az storage blob upload -f ${filename} -c ${functionStorageContainerName} -n ${filename} --overwrite true'
+    scriptContent: 'echo "$CONTENT" > ${tempfilename} && cat ${tempfilename} | base64 -d > ${filename} && az login --identity --username ${userManagedIdentityClientId} && az storage blob upload -f ${filename} -c ${functionStorageContainerName} -n ${filename} --account-name ${storageAccountName} --auth-mode login --overwrite true'
   }
 }
 

@@ -179,9 +179,9 @@ module speechService 'core/ai/cognitiveservices.bicep' = {
 }
 
 module cosmosMongoDB 'core/database/cosmos/cosmos-account.bicep' = {
-  name: replace('${take(prefix, 12)}cosmosMongoDB', '-', '')
+  name: replace('${take(prefix, 12)}cosmosmongodb', '-', '')
   params: {
-    name: replace('${take(prefix, 12)}cosmosMongoDB', '-', '')
+    name: replace('${take(prefix, 12)}cosmosmongodb', '-', '')
     location: location
     tags: tags
     kind: 'MongoDB'
@@ -190,10 +190,10 @@ module cosmosMongoDB 'core/database/cosmos/cosmos-account.bicep' = {
 
 module storage 'core/storage/storage.bicep' = {
   //scope: resourceGroup
-  name: replace('${take(prefix, 12)}medicalnotesin', '-', '')
+  name: replace('${take(prefix, 12)}mednotesin', '-', '')
   params: {
     location: location
-    storageAccountName: replace('${take(prefix, 12)}medicalnotesin', '-', '')
+    storageAccountName: replace('${take(prefix, 12)}mednotesin', '-', '')
     storageAccountType: 'Standard_LRS'
     storageAccountContainerName: storageAccountContainerName
     storageAccountContainerTokenStore: storageAccountContainerTokenStore
@@ -400,6 +400,16 @@ module dips 'app/aca.bicep' = {
 //   }
 // }
 
+module cosmosRoleAssignment 'core/security/role.bicep' = {
+  //scope: resourceGroup
+  name: 'cosmos-account-role'
+  params: {
+    principalId: managedIdentity.outputs.managedIdentityPrincipalId
+    roleDefinitionId: '5bd9cd88-fe45-4216-938b-f97437e15450' // DocumentDB Account Contributor
+    principalType: 'ServicePrincipal'
+  }
+}
+
 module cognitiveServicesSpeechRoleAssignment 'core/security/role.bicep' = {
   //scope: resourceGroup
   name: 'speech-account-role'
@@ -450,6 +460,36 @@ module acaBackEndStorageTableAccess 'core/security/role.bicep' = {
   }
 }
 
+module userCosmosRoleAssignment 'core/security/role.bicep' = if (!empty(principalId)){
+  //scope: resourceGroup
+  name: 'user-cosmos-account-role'
+  params: {
+    principalId: principalId
+    roleDefinitionId: '5bd9cd88-fe45-4216-938b-f97437e15450' // DocumentDB Account Contributor
+    principalType: principalType
+  }
+}
+
+module userCognitiveServicesSpeechRoleAssignment 'core/security/role.bicep' = if (!empty(principalId)){
+  //scope: resourceGroup
+  name: 'user-speech-account-role'
+  params: {
+    principalId: principalId
+    roleDefinitionId: '0e75ca1e-0464-4b4d-8b93-68208a576181' // Cognitive Services Speech Contributor
+    principalType: principalType
+  }
+}
+
+module userServiceBusAccountRole 'core/security/role.bicep' = if (!empty(principalId)){
+  //scope: resourceGroup
+  name: 'user-serviceBus-account-role'
+  params: {
+    principalId: principalId
+    roleDefinitionId: '090c5cfd-751d-490a-894a-3ce6f1109419' // Azure Service Bus Data Owner
+    principalType: principalType
+  }
+}
+
 module userAiSearchRole 'core/security/role.bicep' = if (!empty(principalId)) {
   //scope: resourceGroup
   name: 'user-ai-search-index-data-contributor'
@@ -470,7 +510,7 @@ module openaiRoleUser 'core/security/role.bicep' = if (!empty(principalId)) {
   }
 }
 
-module userAiSearchStorageAccess 'core/security/role.bicep' = if (!empty(principalId)) {
+module userStorageAccess 'core/security/role.bicep' = if (!empty(principalId)) {
   //scope: resourceGroup
   name: 'user-storage-blob-data-contributor'
   params: {
