@@ -62,13 +62,13 @@ param searchServiceName string = ''
 param aiSearchIndexName string = 'vector-health'
 
 @description('Container Image Name FrontEnd')
-param imageNameFrontEnd string = 'welasco/yak-frontend:latest'
+param imageNameFrontEnd string = 'welasco/dips-frontend:latest'
 
 @description('Container Image TargetPort FrontEnd')
 param imageTargetPortFrontEnd string = '80'
 
 @description('Container Image Name BackEnd')
-param imageNameBackEnd string = 'welasco/yak-backend:latest'
+param imageNameBackEnd string = 'welasco/dips-backend:latest'
 
 @description('Container Image Name DIPs')
 param imageNameDIPs string = 'welasco/dips:latest'
@@ -277,7 +277,6 @@ module dips 'app/aca.bicep' = {
     containerAppsEnvironmentName: containerApps.outputs.environmentName
     imageName: imageNameDIPs
     imageTargetPort: imageTargetPortBackEnd
-    appRegistrationClientId: appRegistrationClientId
     acaEnviromentVariables: [
       {
         name: 'AZURE_CLIENT_ID'
@@ -338,58 +337,84 @@ module dips 'app/aca.bicep' = {
 
 
 
-// module aca 'app/aca.bicep' = {
-//   name: 'aca'
-//   //scope: resourceGroup
-//   params: {
-//     name: replace('${take(prefix, 19)}-ca', '--', '-')
-//     location: location
-//     tags: tags
-//     containerAppsEnvironmentName: containerApps.outputs.environmentName
-//     imageName: imageNameFrontEnd
-//     imageTargetPort: imageTargetPortFrontEnd
-//     acaBackEndUri: acaBackEnd.outputs.SERVICE_ACA_URI
-//     openAiDeploymentName: openAiDeploymentName
-//     openAiEndpoint: openAi.outputs.endpoint
-//     openAiType: openAiType
-//     openAiApiVersion: openAiApiVersion
-//     appinsights_Connectionstring: monitoring.outputs.applicationInsightsConnectionString
-//     appRegistrationClientId: appRegistrationClientId
-//     clientSecretSettingName: clientSecretSettingName
-//     tokenStoreSASUrlSettingName: storageAccountContainerTokenStore
-//     secrets: {
-//       tokenstore: '${storage.outputs.storageEndpointBlob}${storageAccountContainerTokenStore}?${storage.outputs.storageToken}'
-//       microsoftproviderauthenticationsecret: appRegistrationSecret
-//     }
-//   }
-// }
+module aca 'app/aca.bicep' = {
+  name: 'acaFrontEnd'
+  //scope: resourceGroup
+  params: {
+    name: replace('${take(prefix, 19)}-acaFrontEnd', '--', '-')
+    location: location
+    tags: tags
+    containerAppsEnvironmentName: containerApps.outputs.environmentName
+    imageName: imageNameFrontEnd
+    imageTargetPort: imageTargetPortFrontEnd
+    appRegistrationClientId: appRegistrationClientId
+    clientSecretSettingName: clientSecretSettingName
+    tokenStoreSASUrlSettingName: storageAccountContainerTokenStore
+    secrets: {
+      tokenstore: '${storage.outputs.storageEndpointBlob}${storageAccountContainerTokenStore}?${storage.outputs.storageToken}'
+      microsoftproviderauthenticationsecret: appRegistrationSecret
+    }
+    acaEnviromentVariables: [
+      {
+        name: 'AZURE_CLIENT_ID'
+        value: managedIdentity.outputs.managedIdentityClientId
+      }
+      {
+        name: 'backendUri'
+        value: '${acaBackEnd.outputs.SERVICE_ACA_URI}/'
+      }
+      {
+        name: 'APPLICATIONINSIGHTS__CONNECTIONSTRING'
+        value: monitoring.outputs.applicationInsightsConnectionString
+      }
+      {
+        name: 'PORT'
+        value: '80'
+      }
+    ]
+  }
+}
 
-// module acaBackEnd 'app/aca.bicep' = {
-//   name: 'acaBackEnd'
-//   //scope: resourceGroup
-//   params: {
-//     name: toLower(replace('${take(prefix, 19)}-caBackEnd', '--', '-'))
-//     location: location
-//     tags: tags
-//     identityName: managedIdentity.outputs.managedIdentityName
-//     identityId: managedIdentity.outputs.managedIdentityClientId
-//     containerAppsEnvironmentName: containerApps.outputs.environmentName
-//     imageName: imageNameBackEnd
-//     imageTargetPort: imageTargetPortBackEnd
-//     openAiDeploymentName: !empty(openAiDeploymentName) ? openAiDeploymentName : 'gpt-35-turbo'
-//     openAiEndpoint: openAi.outputs.endpoint
-//     openAiType: openAiType
-//     openAiApiVersion: openAiApiVersion
-//     aiSearchSemanticConfig: aiSearchSemanticConfig
-//     appinsights_Connectionstring: monitoring.outputs.applicationInsightsConnectionString
-//     appRegistrationClientId: appRegistrationClientId
-//     storageEndpoint: storage.outputs.storageEndpointTable
-//     clientSecretSettingName: clientSecretSettingName
-//     secrets: {
-//       microsoftproviderauthenticationsecret: appRegistrationSecret
-//     }
-//   }
-// }
+module acaBackEnd 'app/aca.bicep' = {
+  name: 'acaBackEnd'
+  //scope: resourceGroup
+  params: {
+    name: toLower(replace('${take(prefix, 19)}-caBackEnd', '--', '-'))
+    location: location
+    tags: tags
+    identityName: managedIdentity.outputs.managedIdentityName
+    containerAppsEnvironmentName: containerApps.outputs.environmentName
+    imageName: imageNameBackEnd
+    imageTargetPort: imageTargetPortBackEnd
+    appRegistrationClientId: appRegistrationClientId
+    clientSecretSettingName: clientSecretSettingName
+    secrets: {
+      microsoftproviderauthenticationsecret: appRegistrationSecret
+    }
+    acaEnviromentVariables: [
+      {
+        name: 'AZURE_CLIENT_ID'
+        value: managedIdentity.outputs.managedIdentityClientId
+      }
+      {
+        name: 'STORAGE_CONNECTION_STRING'
+        value: storage.outputs.storageEndpointBlob
+      }
+      {
+        name: 'AZURE_COSMOS_LISTCONNECTIONSTRINGURL'
+        value: 'https://management.azure.com/subscriptions/${subscription().subscriptionId}/resourceGroups/${resourceGroup().name}/providers/Microsoft.DocumentDB/databaseAccounts/${cosmosMongoDB.name}/listConnectionStrings?api-version=2024-08-15'
+      }
+      {
+        name: 'APPLICATIONINSIGHTS__CONNECTIONSTRING'
+        value: monitoring.outputs.applicationInsightsConnectionString
+      }
+      {
+        name: 'PORT'
+        value: '80'
+      }
+    ]
+  }
+}
 
 // module aiSearchRole 'core/security/role.bicep' = {
 //   //scope: resourceGroup

@@ -7,6 +7,7 @@ from fastapi import FastAPI, File, HTTPException, UploadFile
 from azure.storage.blob import BlobServiceClient
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
+from azure.identity import DefaultAzureCredential
 
 from settings import Settings, get_settings_instance
 from mgdatabase import MongoDBService
@@ -15,11 +16,20 @@ from constants import *
 AZURE_CONTAINER_NAME = 'medical-notes-in'
 settings: Settings = get_settings_instance()
 
-blob_service_client = BlobServiceClient.from_connection_string(
-    settings.blob_connection_string)
+def get_blob_service_client() -> BlobServiceClient:
+    credential = DefaultAzureCredential()
+    blob_service_client = BlobServiceClient(settings.blob_connection_string, credential=credential)
+    return blob_service_client
+
+blob_service_client = get_blob_service_client()
+
+# blob_service_client = BlobServiceClient.from_connection_string(
+#     settings.blob_connection_string)
 
 mongo_service = MongoDBService(
     collection_name=constants.COLLECTION_TRANSCRIPTIONS)
+
+
 
 app = FastAPI()
 

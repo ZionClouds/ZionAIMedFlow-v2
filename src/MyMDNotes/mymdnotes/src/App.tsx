@@ -6,7 +6,83 @@ import Popup from './components/popup'
 import { IoExpand } from 'solid-icons/io'
 import { AiOutlineEdit } from 'solid-icons/ai'
 
-const BASE_URL = import.meta.env.VITE_BASE_URL as string
+// @ts-ignore
+const BASE_URL = window.base_url;
+//const BASE_URL = import.meta.env.VITE_BASE_URL as string
+
+export async function GetAuthHeader() {
+  function IsExpired(token_expiration_date: string) {
+    var date = new Date(token_expiration_date).getTime();
+    var now = new Date().getTime();
+    var diffInMS = now - date;
+    var msInHour = Math.floor(diffInMS / 1000 / 60);
+    if (msInHour < 55) {
+      //console.log('Within hour');
+      return false;
+    } else {
+      //console.log('Not within the hour');
+      return true
+    }
+  }
+  function GetTokenExpirationDate(token: string) {
+    const base64Url = token.split(".")[1];
+    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split("")
+        .map(function (c) {
+          return "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2);
+        })
+        .join("")
+    );
+
+    const { exp } = JSON.parse(jsonPayload);
+    //const expired = Date.now() >= exp * 1000
+    const expired = exp * 1000
+    return expired
+  }
+
+  try {
+    const respEasyAuthToken = await axios.get(".auth/me")
+    //const currentTokenExpirationDate = respEasyAuthToken.data[0].expires_on
+    const current_id_token = respEasyAuthToken.data[0].id_token
+    const currentTokenExpirationDate = GetTokenExpirationDate(current_id_token)
+    console.log("Checking if id_token is expired")
+    console.log("Current Token Expiration Date: ", currentTokenExpirationDate)
+    if (IsExpired(currentTokenExpirationDate.toString())) {
+      console.log("Token is expired, refreshing token at .auth/refresh")
+      const refreshEasyAuthToken = await axios.get(".auth/refresh")
+      if (refreshEasyAuthToken.status === 200) {
+        console.log("Token refreshed successfully")
+        var renewedToken
+        do {
+          renewedToken = await axios.get(".auth/me")
+          var id_token = renewedToken.data[0].id_token
+          var headers = {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + id_token
+          }
+          return headers
+        }
+        while (IsExpired(renewedToken.data[0].expires_on))
+
+      } else {
+        console.log("Token refresh failed")
+      }
+    } else {
+      console.log("Token is not expired")
+      var id_token = respEasyAuthToken.data[0].id_token
+      var headers = {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + id_token
+      }
+      return headers
+    }
+  } catch (error) {
+    console.error('Error fetching data:', error);
+    throw error
+  }
+}
 
 export interface INote {
   pid: string
@@ -21,7 +97,7 @@ export interface INote {
 }
 
 function App() {
-  const [authorized] = createSignal(true)
+  //const [authorized] = createSignal(true)
   const [user] = createSignal({ name: 'Jane Marie Doe, MD', id: 'jmdoe', email: 'jmdoe@mdpartners.com' })
   const [file, setFile] = createSignal<File | null>(null)
   const [uploading, setUploading] = createSignal(false)
@@ -29,6 +105,45 @@ function App() {
   const [showmodal, setShowModal] = createSignal(false)
   const [selectedNote, setSelectedNote] = createSignal<INote | null>(null)
   const [selectedTarget, setSelectedTarget] = createSignal('transcription')
+  const [readTokenName, setEasyAuthTokenUser] = createSignal<string>();
+  //const [readEasyAuthTokenUserRole, setEasyAuthTokenUserRole] = createSignal<string[]>([]);
+
+  const handleLogOut = (): void => {
+    // Redirect to logout url
+    const ask = confirm('Are you sure you want to logout?')
+    if (ask)
+      window.location.href = '.auth/logout'
+  }
+
+  // Loading Easy Auth Current Logged User and User Roles claims
+  createEffect(async () => {
+    try {
+      const respEasyAuthToken = await axios.get(".auth/me")
+      for (let tokenIndex = 0; tokenIndex < respEasyAuthToken.data.length; tokenIndex++) {
+        const authToken = respEasyAuthToken.data[tokenIndex];
+        for (let claimIndex = 0; claimIndex < authToken?.user_claims?.length; claimIndex++) {
+          const claim = authToken.user_claims[claimIndex];
+          if (claim.typ === 'name') {
+            console.log('Name: ', claim.val)
+            const newValue = claim.val
+            setEasyAuthTokenUser(newValue)
+            break
+          }
+        }
+        // try {
+        //   const token = JSON.parse(atob(authToken.id_token.split('.')[1]))
+        //   setEasyAuthTokenUserRole(token.roles)
+        // } catch (error) {
+        //   console.log(error)
+        //   setEasyAuthTokenUserRole([])
+        // }
+      }
+    } catch (error) {
+      console.log(error)
+      setEasyAuthTokenUser("Unknown")
+      //setEasyAuthTokenUserRole([])
+    }
+  })
 
   const uploadFile = async (file: File) => {
     if (uploading())
@@ -44,11 +159,11 @@ function App() {
     formData.append('file', file);
 
     try {
-      const response = await axios.post(BASE_URL + 'upload/' + user().id, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+      let headers = await GetAuthHeader()
+      if (headers) {
+        headers['Content-Type'] = 'multipart/form-data';
+      }
+      const response = await axios.post(BASE_URL + 'upload/' + user().id, formData, { headers });
       console.log('File uploaded successfully:', response.data);
     } catch (error) {
       console.error('Error uploading file:', error);
@@ -77,7 +192,8 @@ function App() {
 
   const updateNotes = async () => {
     try {
-      const response = await axios.get<INote[]>(BASE_URL + 'notes/' + user().id);
+      let headers = await GetAuthHeader()
+      const response = await axios.get<INote[]>(BASE_URL + 'notes/' + user().id, { headers });
       const data = response.data;
       setNotes(data)
       console.log('Notes updated:', response.data);
@@ -96,7 +212,8 @@ function App() {
 
   const edit = async (note: INote) => {
     try {
-      await axios.post(BASE_URL + 'notes', note);
+      let headers = await GetAuthHeader()
+      await axios.post(BASE_URL + 'notes', note, { headers });
     }
     catch (error) {
       console.error('Error updating notes:', error);
@@ -113,13 +230,17 @@ function App() {
           <h1 class="font-bold text-lg">My MD Notes</h1>
         </div>
         <div class='space-x-2'>
-          {authorized() && <>
+          {/* {authorized() && <>
             <span class='text-sm bg-slate-800 p-1'>Jane Marie Doe, MD</span>
             <button>Logout</button>
           </>}
           {!authorized() && <>
             <button>Login</button>
-          </>}
+          </>} */}
+          {(!!readTokenName()) && (
+            <span class='text-sm bg-slate-800 p-1'>{readTokenName()}</span>
+          )}
+          <button class='button button-text font-semibold hover:underline' onclick={handleLogOut}>Sign&nbsp;out</button>
         </div>
       </header>
 

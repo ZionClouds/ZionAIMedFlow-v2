@@ -3,16 +3,35 @@ import click
 from pymongo import MongoClient
 from settings import get_settings_instance
 from constants import *
+from azure.identity import DefaultAzureCredential, get_bearer_token_provider
+import requests
 
 settings = get_settings_instance()
 
 mg_client = None
 
 
+def mogo_getConnectionStr():
+    listConnectionStringUrl = settings.mongo_listconnectionstringurl
+    token_provider = get_bearer_token_provider(
+            DefaultAzureCredential(), "https://management.azure.com/.default"
+        )
+    session = requests.Session()
+    token = token_provider()
+
+    response = session.post(listConnectionStringUrl, headers={"Authorization": "Bearer {}".format(token)})
+    keys_dict = response.json()
+    conn_str = keys_dict["connectionStrings"][0]["connectionString"]
+
+    # Connect to Azure Cosmos DB for MongoDB
+    client = MongoClient(conn_str)
+    return client
+
 def mongo_instance():
     global mg_client
     if mg_client is None:
-        mg_client = MongoClient(settings.mongo_conn_str)
+        #mg_client = MongoClient(settings.mongo_conn_str)
+        mg_client = mogo_getConnectionStr()
     return mg_client
 
 
