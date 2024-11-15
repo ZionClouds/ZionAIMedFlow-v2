@@ -41,9 +41,9 @@ Zion MedFlow GenAI is simple to implement and customize. Our development-friendl
 
 # Distributed Processing System For Intelligent Workloads (DPSIw)
 
-This prototype system is a distributed application that utilizes various components to process and analyze messages. It consists of a Worker module that receives messages from different sources such as file watchers and blob storage events. These messages are then processed by message processing workers, which apply content filters and interact with services and tools. The system also includes a Metadata Loader that interacts with a Profile Loader and Transcription Service. Additionally, there is a Monitor module that provides an admin console for managing the system, a User Portal for physicians to access the system, and a Metadata Editor for editors to make changes. 
+This prototype system is a distributed application that utilizes various components to process and analyze messages. It consists of a Worker module that receives messages from different sources such as file watchers and blob storage events. These messages are then processed by message processing workers, which apply content filters and interact with services and tools. The system also includes a Metadata Loader that interacts with a Profile Loader and Transcription Service. Additionally, there is a Monitor module that provides an admin console for managing the system, a User Portal for physicians to access the system, and a Metadata Editor for editors to make changes.
 
-The prototype environment relies on Azure Storage Emulator for development and requires specific environment variables to be set. To run the system, the repository needs to be cloned, an environment file created, and a virtual Python environment set up. Finally, the solution can be opened in VS Code and executed. 
+The prototype environment relies on Azure Storage Emulator for development and requires specific environment variables to be set. To run the system, the repository needs to be cloned, an environment file created, and a virtual Python environment set up. Finally, the solution can be opened in VS Code and executed.
 
 
 ## Features
@@ -84,6 +84,75 @@ The sample illustrates the end-to-end workflow (GenAIOps) for building a RAG-bas
 1. Provision and deploy the solution using the Azure Developer CLI
 1. Support Responsible AI practices with content safety & assessments
 
+
+## Deployment Wizard
+
+First create an Azure Entra Service Principal that will be used for User Authentication (Easy Auth):
+
+  ```PowerShell
+  .\infra\hooks\CreateAppRegistration.ps1 -AppName app-yak
+  ```
+
+The result of the script will give you an output like this:
+
+  ```json
+  {
+    "appId": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+    "displayName": "app-yak",
+    "password": "*************************************",
+    "tenant": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+  }
+  ```
+
+Save the output, it will be used during the deployment.
+
+## Deploying through azd
+
+Follow these steps to provision Azure resources and deploy the application code:
+
+1. Clone this repo locally to your machine
+
+    ```shell
+    git clone https://github.com/ZionClouds/ZionDataFusionAI
+    ```
+
+1. Login to your Azure account:
+
+    ```shell
+    azd auth login --use-device-code
+    ```
+
+    ```shell
+    az login --use-device-code
+    ```
+
+1. Create a new azd environment:
+
+    ```shell
+    azd env new
+    ```
+
+    Enter a name that will be used for the resource group.
+    This will create a new folder in the `.azure` folder, and set it as the active environment for any calls to `azd` going forward.
+1. (Optional) This is the point where you can customize the deployment by setting environment variables, in order to [use existing resources](docs/deploy_existing.md), [enable optional features (such as auth or vision)](docs/deploy_features.md), or [deploy to free tiers](docs/deploy_lowcost.md).
+
+1. Run `azd up` - This will provision Azure resources and deploy this sample to those resources, including building the search index based on the files found in the `./data` folder.
+    - **Important**: Beware that the resources created by this command will incur immediate costs, primarily from the AI Search resource. These resources may accrue costs even if you interrupt the command before it is fully executed. You can run `azd down` or delete the resources manually to avoid unnecessary spending.
+    - You will be prompted to select two locations, one for the majority of resources and one for the OpenAI resource, which is currently a short list. That location list is based on the [OpenAI model availability table](https://learn.microsoft.com/azure/cognitive-services/openai/concepts/models#model-summary-table-and-region-availability) and may become outdated as availability changes.
+
+> NOTE: It may take 5-10 minutes after you see 'SUCCESS' for the application to be fully deployed. If you see a "Python Developer" welcome screen or an error page, then wait a bit and refresh the page. See [guide on debugging App Service deployments](docs/appservice.md).
+
+At the end run the script SetupAppRegistration.ps1 in a PowerShell session to finish the App Registration setup. Pass the parameter -AppId as the "appId" from the output of CreateAppRegistration.ps1 and -ACAFrontEndUrl from the Azure Container Apps URL it can be captured at the end of the deployment under output tabs or by browsing the resource group and looking for the Azure Container Apps with a name like "yak-xxxxxxxxxxxxx-ca":
+
+```powershell
+.\infra\hooks\SetupAppRegistration.ps1 -AppId "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" -ACAFrontEndUrl "https://yak-xxxxxxxxxxxxx-ca.xxxxxxxxxxxx-xxxxxxxx.<region>.azurecontainerapps.io"
+```
+
+In case you are running from a Linux environment
+
+```powershell
+.\infra\hooks\SetupAppRegistrationLinux.ps1 -AppId "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" -ACAFrontEndUrl "https://yak-xxxxxxxxxxxxx-ca.xxxxxxxxxxxx-xxxxxxxx.<region>.azurecontainerapps.io"
+```
 
 ## Deployment Wizard
 
@@ -151,7 +220,7 @@ docker run --rm -d \
 
 ### Development enviroment
 
-- Clone the repo: `git clone https://github.com/am8850/zebra.git` 
+- Clone the repo: `git clone https://github.com/am8850/zebra.git`
 - Change directories: `cd zebra`
 - create an `.env` file:
 
