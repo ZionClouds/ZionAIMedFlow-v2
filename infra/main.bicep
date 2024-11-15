@@ -339,7 +339,7 @@ module aca 'app/aca.bicep' = {
   name: 'acaFrontEnd'
   //scope: resourceGroup
   params: {
-    name: toLower(replace('${take(prefix, 19)}-acaFrontEnd', '--', '-'))
+    name: toLower(replace('${take(prefix, 19)}-caFrontEnd', '--', '-'))
     location: location
     tags: tags
     containerAppsEnvironmentName: containerApps.outputs.environmentName
