@@ -98,7 +98,7 @@ export interface INote {
 
 function App() {
   //const [authorized] = createSignal(true)
-  const [user] = createSignal({ name: 'Jane Marie Doe, MD', id: 'jmdoe', email: 'jmdoe@mdpartners.com' })
+  const [user,setUser] = createSignal({ name: 'Jane Marie Doe, MD', id: 'jmdoe', email: 'jmdoe@mdpartners.com' })
   const [file, setFile] = createSignal<File | null>(null)
   const [uploading, setUploading] = createSignal(false)
   const [notes, setNotes] = createSignal<INote[]>([])
@@ -130,13 +130,14 @@ function App() {
             break
           }
         }
-        // try {
-        //   const token = JSON.parse(atob(authToken.id_token.split('.')[1]))
-        //   setEasyAuthTokenUserRole(token.roles)
-        // } catch (error) {
-        //   console.log(error)
-        //   setEasyAuthTokenUserRole([])
-        // }
+        try {
+          const token = JSON.parse(atob(authToken.id_token.split('.')[1]))
+          setUser({ name: token.name, id: token.preferred_username, email: token.email })
+          //setEasyAuthTokenUserRole(token.roles)
+        } catch (error) {
+          console.log(error)
+          //setEasyAuthTokenUserRole([])
+        }
       }
     } catch (error) {
       console.log(error)
@@ -164,6 +165,7 @@ function App() {
         headers['Content-Type'] = 'multipart/form-data';
       }
       const response = await axios.post(BASE_URL + 'upload/' + user().id, formData, { headers });
+
       console.log('File uploaded successfully:', response.data);
     } catch (error) {
       console.error('Error uploading file:', error);
