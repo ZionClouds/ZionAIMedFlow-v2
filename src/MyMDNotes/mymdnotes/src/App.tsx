@@ -132,7 +132,8 @@ function App() {
         }
         try {
           const token = JSON.parse(atob(authToken.id_token.split('.')[1]))
-          setUser({ name: token.name, id: token.preferred_username, email: token.email })
+          let userId = token.preferred_username.split('@')[0]
+          setUser({ name: token.name, id: userId, email: token.email })
           //setEasyAuthTokenUserRole(token.roles)
         } catch (error) {
           console.log(error)

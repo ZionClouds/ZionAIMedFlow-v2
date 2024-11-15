@@ -4,7 +4,7 @@ import uuid
 
 import click
 from openai import AzureOpenAI
-from azure.identity.aio import DefaultAzureCredential, get_bearer_token_provider
+from azure.identity import DefaultAzureCredential, get_bearer_token_provider
 from dpsiw.constants import constants
 from dpsiw.exceptions import CompletedException, DeadLetteredException
 from dpsiw.services.azureblob import AzureBlobContainer, get_blob_name, get_file_name_and_extension

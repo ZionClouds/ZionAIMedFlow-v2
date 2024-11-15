@@ -7,6 +7,7 @@ from pymongo import MongoClient
 from azure.identity import DefaultAzureCredential, get_bearer_token_provider
 from dpsiw.constants import constants
 from dpsiw.services.settings import get_settings_instance
+import uuid
 
 settings = get_settings_instance()
 
@@ -117,7 +118,8 @@ class EventsRepository:
             'ts': datetime.now(timezone.utc),
         }
         # Get the next auto-incremented ID
-        evt['_id'] = self.get_next_id()
+        #evt['_id'] = self.get_next_id()
+        evt['_id'] = str(uuid.uuid4())
         self.mongo_service.upsert(evt['_id'], evt)
 
 

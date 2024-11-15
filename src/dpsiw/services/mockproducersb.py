@@ -23,14 +23,14 @@ class MockProducerSB:
             message: Message = None
             match random_number:
                 case 1:
-                    mock_file = "https://stdipsdevcus.blob.core.windows.net/medical-notes-in/jmdoe-22678c74dc.wav"
+                    mock_file = "https://dipsai7xipkmednotesin.blob.core.windows.net/medical-notes-in/vsantana-0632e6482a.wav"
                     message = Message(id=id,
-                                      pid="jmdoe",
+                                      pid="vsantana",
                                       type=constants.MEDICAL_NOTES_AGENT,
                                       metadata=MedicalNotesMD(
                                           file_url=f"{mock_file}",
-                                          blob_name="medical-notes-in/jmdoe-22678c74dc.wav",
-                                          file_id='22678c74dc'
+                                          blob_name="medical-notes-in/vsantana-0632e6482a.wav",
+                                          file_id='0632e6482a'
                                       ),
                                       llmopts=LLMOpts(
                                           type="azure",
