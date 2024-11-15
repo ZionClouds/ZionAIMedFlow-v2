@@ -1,7 +1,15 @@
 FROM python:3.11-slim
 WORKDIR /app
+COPY /docker/startup /opt/startup
+COPY /docker/startup/sshd_config /etc/ssh/
 COPY requirements.txt requirements.txt
-RUN pip install -r requirements.txt --no-cache-dir
+RUN echo "root:Docker!" | chpasswd \
+    && echo "cd /code" >> /etc/bash.bashrc \
+    && cd /opt/startup \
+    && chmod 755 /opt/startup/init_container.sh \
+    && cd /app \
+    && pip install --no-cache-dir --upgrade -r requirements.txt
+
 COPY . .
-EXPOSE 8000
-CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000", "--reload", "--workers", "3"]
+EXPOSE 80
+ENTRYPOINT ["/opt/startup/init_container.sh"]

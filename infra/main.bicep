@@ -277,6 +277,7 @@ module dips 'app/aca.bicep' = {
     containerAppsEnvironmentName: containerApps.outputs.environmentName
     imageName: imageNameDIPs
     imageTargetPort: imageTargetPortBackEnd
+    ingressEnabled: false
     acaEnviromentVariables: [
       {
         name: 'AZURE_CLIENT_ID'
@@ -334,14 +335,11 @@ module dips 'app/aca.bicep' = {
   }
 }
 
-
-
-
 module aca 'app/aca.bicep' = {
   name: 'acaFrontEnd'
   //scope: resourceGroup
   params: {
-    name: replace('${take(prefix, 19)}-acaFrontEnd', '--', '-')
+    name: toLower(replace('${take(prefix, 19)}-acaFrontEnd', '--', '-'))
     location: location
     tags: tags
     containerAppsEnvironmentName: containerApps.outputs.environmentName

@@ -9,6 +9,7 @@ param imageTargetPort string = '80'
 param serviceName string = 'aca'
 param appRegistrationClientId string = ''
 param acaEnviromentVariables array = []
+param ingressEnabled bool = true
 
 
 @description('The secrets required for the container')
@@ -21,7 +22,7 @@ param clientSecretSettingName string = ''
 param tokenStoreSASUrlSettingName string = ''
 
 module app '../core/host/container-app-upsert.bicep' = {
-  name: '${serviceName}-container-app-module'
+  name: '${name}-aca'
   params: {
     name: name
     location: location
@@ -37,6 +38,7 @@ module app '../core/host/container-app-upsert.bicep' = {
     secrets: secrets
     targetPort: int(imageTargetPort)
     tokenStoreSASUrlSettingName: tokenStoreSASUrlSettingName
+    ingressEnabled: ingressEnabled
   }
 }
 

@@ -70,7 +70,7 @@ param clientSecretSettingName string = ''
 param tokenStoreSASUrlSettingName string = ''
 
 module app 'container-app.bicep' = {
-  name: '${deployment().name}-update'
+  name: '${name}-upsert'
   params: {
     name: name
     location: location
