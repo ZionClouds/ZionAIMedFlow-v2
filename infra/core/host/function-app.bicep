@@ -13,7 +13,7 @@ param serviceBusQueue string = ''
 
 var tempfilename = '${filename}.tmp'
 
-module functionStorageAccess '../security/role.bicep' = {
+module functionBlobStorageAccess '../security/role.bicep' = {
   //scope: resourceGroup
   name: 'azFunction-storage-blob-data-contributor'
   params: {
@@ -23,11 +23,21 @@ module functionStorageAccess '../security/role.bicep' = {
   }
 }
 
+module functionQueueStorageAccess '../security/role.bicep' = {
+  //scope: resourceGroup
+  name: 'azFunction-storage-queue-data-contributor'
+  params: {
+    principalId: userManagedIdentityPrincipalId
+    roleDefinitionId: '974c5e8b-45b9-4653-ba55-5f855dd0fb88' //Storage Queue Data Contributor
+    principalType: 'ServicePrincipal'
+  }
+}
+
 resource deploymentScript 'Microsoft.Resources/deploymentScripts@2020-10-01' = {
   name: 'deployscript-Function-${functionname}'
   dependsOn: [
     azfunctionsiteconfig
-    functionStorageAccess
+    functionBlobStorageAccess
   ]
   tags: Tags
   location: location
@@ -159,6 +169,10 @@ resource azfunctionsiteconfig 'Microsoft.Web/sites/config@2021-03-01' = {
     APPLICATIONINSIGHTS_AUTHENTICATION_STRING: 'Authorization=AAD;ClientId=${userManagedIdentityClientId}'
     SB_ENDPOINT: serviceBusEndpoint
     SB_QUEUE: serviceBusQueue
+    AzureWebJobsStorage__credential: 'managedidentity'
+    AzureWebJobsStorage__clientId: userManagedIdentityClientId
+    AzureWebJobsStorage__blobServiceUri: 'https://${storageAccountName}.blob.core.windows.net'
+    AzureWebJobsStorage__queueServiceUri: 'https://${storageAccountName}.queue.core.windows.net'
   }
 }
 

@@ -95,6 +95,7 @@ param appRegistrationSecret string
 param storageAccountContainerName string = 'docs'
 param storageAccountContainerTokenStore string = 'tokenstore'
 param storageAccountContainerFunction string = 'function'
+param medicalnotesStorageContainerName string = 'medical-notes-in'
 
 //var resourceToken = toLower(uniqueString(subscription().id, environmentName, location))
 var resourceToken = toLower(uniqueString(resourceGroup().id, environmentName, location))
@@ -198,6 +199,7 @@ module storage 'core/storage/storage.bicep' = {
     storageAccountType: 'Standard_LRS'
     storageAccountContainerName: storageAccountContainerName
     storageAccountContainerTokenStore: storageAccountContainerTokenStore
+    medicalnotesStorageContainerName: medicalnotesStorageContainerName
     functionStorageContainerName: storageAccountContainerFunction
   }
 }

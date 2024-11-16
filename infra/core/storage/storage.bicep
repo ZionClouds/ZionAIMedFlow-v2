@@ -15,6 +15,7 @@ param storageAccountName string
 param storageAccountContainerName string = ''
 param storageAccountContainerTokenStore string = ''
 param functionStorageContainerName string = ''
+param medicalnotesStorageContainerName string = ''
 param baseTime string = utcNow('u')
 
 resource sa 'Microsoft.Storage/storageAccounts@2023-05-01' = {
@@ -30,6 +31,12 @@ resource sa 'Microsoft.Storage/storageAccounts@2023-05-01' = {
 resource blobServices 'Microsoft.Storage/storageAccounts/blobServices@2023-05-01' = if (!empty(storageAccountContainerName)) {
   name: 'default'
   parent: sa
+}
+
+
+resource medicalnotesContainerName 'Microsoft.Storage/storageAccounts/blobServices/containers@2023-05-01' = if (!empty(medicalnotesStorageContainerName)) {
+  name: functionStorageContainerName
+  parent: blobServices
 }
 
 resource funcStorageContainerName 'Microsoft.Storage/storageAccounts/blobServices/containers@2023-05-01' = if (!empty(functionStorageContainerName)) {

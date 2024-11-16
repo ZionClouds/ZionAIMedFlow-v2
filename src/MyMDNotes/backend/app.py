@@ -101,6 +101,7 @@ def get_notes(id: str):
                     updatedNotes=doc['updatedNotes'],
                     updated=doc['updated']
                 ))
+                # TODO: Add the updated to MongoDB Index, to make it work we did it manually
             # if len(list) == 0:
             #     raise HTTPException(status_code=404, detail="No notes found")
             return list
@@ -150,15 +151,15 @@ async def upload_file(id: str, file: UploadFile = File(...)):
         container=AZURE_CONTAINER_NAME, blob=blob_name)
 
     # Open the file and write it to the buffer
-    with open("downloads/"+file.filename, "wb") as buffer:
+    with open("./"+file.filename, "wb") as buffer:
         buffer.write(await file.read())
 
     # Open the file and upload it to the blob
-    with open("downloads/"+file.filename, "rb") as data:
+    with open("./"+file.filename, "rb") as data:
         blob_client.upload_blob(data)
 
     # Delete the file from the server
-    os.remove("downloads/"+file.filename)
+    os.remove("./"+file.filename)
 
     # Return the blob name
     return {"filename": blob_name}

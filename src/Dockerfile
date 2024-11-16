@@ -14,5 +14,5 @@ COPY . .
 RUN sh buildnorun.sh
 EXPOSE 8000
 #CMD ["dpsiw", "consume","-e","-i","3"]
-#ENTRYPOINT ["/opt/startup/init_container.sh"]
-ENTRYPOINT ["tail", "-f", "/dev/null"]
+ENTRYPOINT ["/opt/startup/init_container.sh"]
+#ENTRYPOINT ["tail", "-f", "/dev/null"]
