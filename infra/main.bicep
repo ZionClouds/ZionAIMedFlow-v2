@@ -240,6 +240,7 @@ module functionApp 'core/host/function-app.bicep' = {
     userManagedIdentity: managedIdentity.outputs.managedIdentityResourceId
     serviceBusEndpoint: '${servicebus.name}.servicebus.windows.net'
     serviceBusQueue: serviceBusQueueName
+    cosmos_listconnectionstringurl: 'https://management.azure.com/subscriptions/${subscription().subscriptionId}/resourceGroups/${resourceGroup().name}/providers/Microsoft.DocumentDB/databaseAccounts/${cosmosMongoDB.name}/listConnectionStrings?api-version=2024-08-15'
   }
 }
 

@@ -3,15 +3,39 @@ from datetime import datetime, timezone
 
 from pymongo import MongoClient
 from dotenv import load_dotenv
+from azure.identity import DefaultAzureCredential, get_bearer_token_provider
+import requests
 
 mg_client = None
 
+def mogo_getConnectionStr():
+    listConnectionStringUrl = os.getenv("AZURE_COSMOS_LISTCONNECTIONSTRINGURL")
+    if os.getenv("MSI_CLIENT_ID"):
+        token_provider = get_bearer_token_provider(
+            DefaultAzureCredential(managed_identity_client_id=os.getenv("MSI_CLIENT_ID")), "https://management.azure.com/.default"
+        )
+    else:
+        token_provider = get_bearer_token_provider(
+            DefaultAzureCredential(), "https://management.azure.com/.default"
+        )
+
+    session = requests.Session()
+    token = token_provider()
+
+    response = session.post(listConnectionStringUrl, headers={"Authorization": "Bearer {}".format(token)})
+    keys_dict = response.json()
+    conn_str = keys_dict["connectionStrings"][0]["connectionString"]
+
+    # Connect to Azure Cosmos DB for MongoDB
+    client = MongoClient(conn_str)
+    return client
 
 def mongo_instance():
     global mg_client
     if mg_client is None:
         load_dotenv()
-        mg_client = MongoClient(os.getenv('MONGO_DB'))
+        #mg_client = MongoClient(os.getenv('MONGO_DB'))
+        mg_client = mogo_getConnectionStr()
     return mg_client
 
 

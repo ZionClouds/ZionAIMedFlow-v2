@@ -20,7 +20,10 @@ app = func.FunctionApp()
 
 async def send_queue_message(correlation_id: str, payload: str):
     queue_name = os.getenv("SB_QUEUE")
-    credential = DefaultAzureCredential()
+    if os.getenv("MSI_CLIENT_ID"):
+        credential = DefaultAzureCredential(managed_identity_client_id=os.getenv("MSI_CLIENT_ID"))
+    else:
+        credential = DefaultAzureCredential()
     client = ServiceBusClient(os.getenv("SB_ENDPOINT"), credential)
     # client = ServiceBusClient.from_connection_string(
     #     os.getenv("SB_CONNECTION_STRING"))
