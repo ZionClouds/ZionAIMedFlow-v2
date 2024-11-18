@@ -17,6 +17,7 @@ param environmentName string
   'northcentralus'
   'australiaeast'
   'swedencentral'
+  'westus3'
 ])
 @metadata({
   azd: {
@@ -120,7 +121,7 @@ module managedIdentity 'core/security/managed-identity.bicep' = {
   name: 'managed-identity'
   //scope: resourceGroup
   params: {
-    name: 'id-${resourceToken}'
+    name: replace('${take(prefix, 12)}identity', '-', '')
     location: location
     tags: tags
   }
@@ -130,7 +131,7 @@ module openAi 'core/ai/cognitiveservices.bicep' = {
   name: 'openai'
   //scope: resourceGroup
   params: {
-    name: !empty(openAiResourceName) ? openAiResourceName : '${resourceToken}-openai'
+    name: !empty(openAiResourceName) ? openAiResourceName : replace('${take(prefix, 12)}openai', '-', '')
     location: location
     tags: tags
     sku: {
@@ -205,10 +206,10 @@ module storage 'core/storage/storage.bicep' = {
 }
 
 module logAnalyticsWorkspace 'core/monitor/loganalytics.bicep' = {
-  name: 'loganalytics'
+  name: replace('${take(prefix, 12)}loganalytics', '-', '')
   //scope: resourceGroup
   params: {
-    name: '${prefix}-loganalytics'
+    name: replace('${take(prefix, 12)}loganalytics', '-', '')
     location: location
     tags: tags
   }

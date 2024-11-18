@@ -1,6 +1,7 @@
 param(
     [string] [Parameter(Mandatory=$true)] $functionAppName,
-    [string] [Parameter(Mandatory=$true)] $RG
+    [string] [Parameter(Mandatory=$true)] $RG,
+    [string] [Parameter(Mandatory=$true)] $managedIdentityClientID
 )
 
 function zipdeploy(){
@@ -8,7 +9,8 @@ function zipdeploy(){
         [string]$deployfilepath,
         #[string]$deploymentUrl,
         [string]$RG,
-        [string]$functionAppName
+        [string]$functionAppName,
+        [string]$managedIdentityClientID
     )
     #PowerShell
     $filePath = $deployfilepath
@@ -32,4 +34,4 @@ $base64file=$env:CONTENT
 $zipfile=[System.Convert]::FromBase64String($base64file)
 [System.IO.File]::WriteAllBytes($filePath, $zipfile)
 
-zipdeploy -deployfilepath $filePath -RG $RG -functionAppName $functionAppName #-deploymentUrl $appSvcDeploymentUrl
+zipdeploy -deployfilepath $filePath -RG $RG -functionAppName $functionAppName -managedIdentityClientID $managedIdentityClientID #-deploymentUrl $appSvcDeploymentUrl

@@ -34,6 +34,17 @@ module functionQueueStorageAccess '../security/role.bicep' = {
   }
 }
 
+module functionWebsiteContributor '../security/role.bicep' = {
+  //scope: resourceGroup
+  name: 'azFunction-website-contributor'
+  params: {
+    principalId: userManagedIdentityPrincipalId
+    roleDefinitionId: 'de139f84-1756-47ae-9be6-808fbbe84772' //Website Contributor
+    principalType: 'ServicePrincipal'
+  }
+}
+
+
 // resource deploymentScript 'Microsoft.Resources/deploymentScripts@2020-10-01' = {
 //   name: 'deployscript-Function-${functionname}'
 //   dependsOn: [
@@ -131,7 +142,7 @@ resource azfunctionsite 'Microsoft.Web/sites@2023-01-01' = {
           numberOfWorkers: 1
           linuxFxVersion: 'PYTHON|3.11'
           acrUseManagedIdentityCreds: false
-          alwaysOn: false
+          alwaysOn: true
           ipSecurityRestrictions: [
               {
                   ipAddress: 'Any'
@@ -193,7 +204,7 @@ resource azfunctionsiteconfig 'Microsoft.Web/sites/config@2021-03-01' = {
     AzureWebJobsStorage__clientId: userManagedIdentityClientId
     AzureWebJobsStorage__blobServiceUri: 'https://${storageAccountName}.blob.core.windows.net'
     AzureWebJobsStorage__queueServiceUri: 'https://${storageAccountName}.queue.core.windows.net'
-    AzureWebJobsStorage__accountName: functionname
+    AzureWebJobsStorage__accountName: storageAccountName
     AZURE_COSMOS_LISTCONNECTIONSTRINGURL: cosmos_listconnectionstringurl
     MSI_CLIENT_ID: userManagedIdentityClientId
     SCM_DO_BUILD_DURING_DEPLOYMENT: 'true'
@@ -201,15 +212,47 @@ resource azfunctionsiteconfig 'Microsoft.Web/sites/config@2021-03-01' = {
   }
 }
 
-resource deploymentScript 'Microsoft.Resources/deploymentScripts@2023-08-01' = {
+// resource deploymentScriptPwsh 'Microsoft.Resources/deploymentScripts@2023-08-01' = {
+//   name: 'deployscript-Function-${functionname}'
+//   dependsOn: [
+//     azfunctionsiteconfig
+//     functionBlobStorageAccess
+//   ]
+//   tags: Tags
+//   location: location
+//   kind: 'AzurePowerShell'
+//   identity: {
+//     type: 'UserAssigned'
+//     userAssignedIdentities: {
+//       '${userManagedIdentity}': {}
+//     }
+//   }
+//   properties: {
+//     azPowerShellVersion: '8.3'
+//     timeout: 'PT30M'
+//     retentionInterval: 'P1D'
+//     environmentVariables: [
+//       {
+//         name: 'CONTENT'
+//         value: loadFileAsBase64('../../../src/azurefunctions/mymdnotes.zip')
+//       }
+//     ]
+//     arguments: '-functionAppName \\"${functionname}\\" -RG \\"${resourceGroup().name}\\" -managedIdentityClientID \\"${userManagedIdentityClientId}\\"'
+//     scriptContent: loadTextContent('../../hooks/DeployFunction.ps1')
+//     cleanupPreference: 'OnSuccess'
+//   }
+// }
+
+resource deploymentScript 'Microsoft.Resources/deploymentScripts@2020-10-01' = {
   name: 'deployscript-Function-${functionname}'
   dependsOn: [
     azfunctionsiteconfig
     functionBlobStorageAccess
+    functionWebsiteContributor
   ]
   tags: Tags
   location: location
-  kind: 'AzurePowerShell'
+  kind: 'AzureCLI'
   identity: {
     type: 'UserAssigned'
     userAssignedIdentities: {
@@ -217,18 +260,17 @@ resource deploymentScript 'Microsoft.Resources/deploymentScripts@2023-08-01' = {
     }
   }
   properties: {
-    azPowerShellVersion: '8.3'
-    timeout: 'PT30M'
-    retentionInterval: 'P1D'
+    azCliVersion: '2.42.0'
+    timeout: 'PT20M'
+    retentionInterval: 'PT1H'
     environmentVariables: [
       {
         name: 'CONTENT'
         value: loadFileAsBase64('../../../src/azurefunctions/mymdnotes.zip')
       }
     ]
-    arguments: '-functionAppName \\"${functionname}\\" -RG \\"${resourceGroup().name}\\" -managedIdentityClientID \\"${userManagedIdentityClientId}\\"'
-    scriptContent: loadTextContent('../../hooks/DeployFunction.ps1')
-    cleanupPreference: 'OnSuccess'
+    //scriptContent: 'echo "$CONTENT" > ${tempfilename} && cat ${tempfilename} | base64 -d > ${filename} && az login --identity --username ${userManagedIdentityClientId} && az storage blob upload -f ${filename} -c ${functionStorageContainerName} -n ${filename} --account-name ${storageAccountName} --auth-mode login --overwrite true'
+    scriptContent: 'echo "$CONTENT" > ${tempfilename} && cat ${tempfilename} | base64 -d > ${filename} && az login --identity --username ${userManagedIdentityClientId} && echo "Listing local files" && ls -ltrah && echo "Deploying Azure Function..." && az functionapp deployment source config-zip -g ${resourceGroup().name} -n ${functionname} --src ${filename} --build-remote true --verbose --debug'
   }
 }
 

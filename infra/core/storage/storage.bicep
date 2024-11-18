@@ -35,7 +35,7 @@ resource blobServices 'Microsoft.Storage/storageAccounts/blobServices@2023-05-01
 
 
 resource medicalnotesContainerName 'Microsoft.Storage/storageAccounts/blobServices/containers@2023-05-01' = if (!empty(medicalnotesStorageContainerName)) {
-  name: functionStorageContainerName
+  name: medicalnotesStorageContainerName
   parent: blobServices
 }
 
