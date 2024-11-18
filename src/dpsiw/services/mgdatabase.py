@@ -125,8 +125,12 @@ class EventsRepository:
 
 class TranscriptionsRepository:
     def __init__(self):
+        indexes = [
+            {"key": {"_id": 1}, "name": "_id"},
+            {"key": {"updated": 2}, "name": "updated"},
+        ]
         self.mongo_service = MongoDBService(
-            collection_name=constants.COLLECTION_TRANSCRIPTIONS)
+            collection_name=constants.COLLECTION_TRANSCRIPTIONS, indexes=indexes)
 
     def insert(self, id: str, pid: str, file_id: str, file_url: str, transcription: str, notes: str, status: str = 'processing') -> None:
         """
