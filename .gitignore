@@ -172,3 +172,5 @@ downloads/*
 !downloads/.gitkeep
 #*.zip
 *.tar.gz
+
+.auth/
