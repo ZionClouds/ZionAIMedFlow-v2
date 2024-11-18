@@ -49,6 +49,7 @@ async def StorageTrigger(myblob: func.InputStream):
     file_name = os.path.basename(myblob.name)
     (file, _) = os.path.splitext(file_name)
     file_id = file.split("-")[1]
+    provider_name = file.split("-")[0]
 
     if not bool(file_id):
         logging.error(
@@ -57,6 +58,7 @@ async def StorageTrigger(myblob: func.InputStream):
 
     # Build the message
     message = Message(id=correlation_id,
+                      pid = provider_name,
                       type=MSG_TYPE_MEDICAL_NOTES,
                       metadata=MedicalNotesMD(
                           file_url=myblob.uri,

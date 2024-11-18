@@ -14,6 +14,7 @@ class MedicalNotesMD(BaseModel):
 
 class Message(BaseModel):
     id: str = str(uuid.uuid4())
+    pid: str = 'jmdoe'
     type: str = "MedicalNotesAgent"
     metadata: MedicalNotesMD | None = None
     created: datetime = datetime.now(timezone.utc)
