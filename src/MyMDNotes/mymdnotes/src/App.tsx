@@ -11,20 +11,7 @@ const BASE_URL = window.base_url;
 //const BASE_URL = import.meta.env.VITE_BASE_URL as string
 
 export async function GetAuthHeader() {
-  function IsExpired(token_expiration_date: string) {
-    var date = new Date(token_expiration_date).getTime();
-    var now = new Date().getTime();
-    var diffInMS = now - date;
-    var msInHour = Math.floor(diffInMS / 1000 / 60);
-    if (msInHour < 55) {
-      //console.log('Within hour');
-      return false;
-    } else {
-      //console.log('Not within the hour');
-      return true
-    }
-  }
-  function GetTokenExpirationDate(token: string) {
+  function IsExpired(token: string) {
     const base64Url = token.split(".")[1];
     const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
     const jsonPayload = decodeURIComponent(
@@ -37,19 +24,16 @@ export async function GetAuthHeader() {
     );
 
     const { exp } = JSON.parse(jsonPayload);
-    //const expired = Date.now() >= exp * 1000
-    const expired = exp * 1000
+    const expired = Date.now() >= exp * 1000
     return expired
   }
 
   try {
     const respEasyAuthToken = await axios.get(".auth/me")
-    //const currentTokenExpirationDate = respEasyAuthToken.data[0].expires_on
     const current_id_token = respEasyAuthToken.data[0].id_token
-    const currentTokenExpirationDate = GetTokenExpirationDate(current_id_token)
     console.log("Checking if id_token is expired")
-    console.log("Current Token Expiration Date: ", currentTokenExpirationDate)
-    if (IsExpired(currentTokenExpirationDate.toString())) {
+    //if (IsExpired(currentTokenExpirationDate)) {
+    if (IsExpired(current_id_token)) {
       console.log("Token is expired, refreshing token at .auth/refresh")
       const refreshEasyAuthToken = await axios.get(".auth/refresh")
       if (refreshEasyAuthToken.status === 200) {
@@ -98,7 +82,7 @@ export interface INote {
 
 function App() {
   //const [authorized] = createSignal(true)
-  const [user,setUser] = createSignal({ name: 'Jane Marie Doe, MD', id: 'jmdoe', email: 'jmdoe@mdpartners.com' })
+  const [user, setUser] = createSignal({ name: 'Jane Marie Doe, MD', id: 'jmdoe', email: 'jmdoe@mdpartners.com' })
   const [file, setFile] = createSignal<File | null>(null)
   const [uploading, setUploading] = createSignal(false)
   const [notes, setNotes] = createSignal<INote[]>([])
