@@ -44,6 +44,15 @@ module functionWebsiteContributor '../security/role.bicep' = {
   }
 }
 
+module storageAccountContributor '../security/role.bicep' = {
+  //scope: resourceGroup
+  name: 'storage-account-contributor'
+  params: {
+    principalId: userManagedIdentityPrincipalId
+    roleDefinitionId: '17d1049b-9a84-46fb-8f53-869881c3d3ab' //Storage Account Contributor
+    principalType: 'ServicePrincipal'
+  }
+}
 
 // resource deploymentScript 'Microsoft.Resources/deploymentScripts@2020-10-01' = {
 //   name: 'deployscript-Function-${functionname}'
