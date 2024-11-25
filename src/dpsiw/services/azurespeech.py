@@ -146,7 +146,7 @@ class AzureSTT(Transcriber):
                     DefaultAzureCredential(), "https://cognitiveservices.azure.com/.default")
                 authorizationToken = "aad#" + settings.azSpeechResourceId + "#" + token_provider()
                 speech_config = speechsdk.SpeechConfig(
-                    auth_token=authorizationToken, region=self.service_region)
+                    auth_token=authorizationToken, region=settings.speech_region)
 
             speech_config.speech_recognition_language = opts.recording_language
 
