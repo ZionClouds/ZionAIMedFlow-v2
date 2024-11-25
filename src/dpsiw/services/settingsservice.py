@@ -52,7 +52,7 @@ class SettingsService:
 
         # Region: Azure Service Bus
         # Azure service bus namespace
-        self._sb_mi_ns = os.getenv("SB_MI_NS")
+        self._sb_full_ns = os.getenv("SB_FULL_NAMESPACE")
         # Azure service bus worker queue name
         self._sb_queue_name = os.getenv("SB_QUEUE") or "dips-messages"
         # NOTE: Storage connection string not used in PROD
@@ -79,13 +79,13 @@ class SettingsService:
                     or not bool(self._openai_endpoint) or not bool(self._openai_version) \
                     or not bool(self._speech_region) or not bool(self._azSpeechResourceId) \
                     or not bool(self._storage_url) \
-                    or not bool(self._sb_mi_ns) \
+                    or not bool(self._sb_full_ns) \
                     or not bool(self._sb_queue_name):
                 # os exist
                 # logging.error("Missing environment variables including TYPE, CHAT_MODEL, ENDPOINT, API_KEY, VERSION, SPEECH_REGION, " +
                 #               "SPEECH_API_KEY, MONGO_DB, STORAGE_URL, STORAGE_KEY, SB_CONNECTION_STRING, SB_QUEUE")
                 logging.error("Missing PROD environment variables including TYPE, CHAT_MODEL, ENDPOINT, VERSION, SPEECH_REGION, SPEECH_RESOURCE_ID, " +
-                              "MONGO_DB, STORAGE_URL, SB_CONNECTION_STRING, SB_QUEUE")
+                              "MONGO_DB, STORAGE_URL, SB_FULL_NAMESPACE, SB_QUEUE")
                 exit(1)
 
     @property
@@ -155,8 +155,8 @@ class SettingsService:
         return self._sb_connection_string
 
     @property
-    def sb_mi_ns(self) -> str:
-        return self._sb_mi_ns
+    def sb_full_ns(self) -> str:
+        return self._sb_full_ns
 
 
 settings = None

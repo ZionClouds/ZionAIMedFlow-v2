@@ -26,7 +26,7 @@ class WorkerSB:
         else:
             credential = DefaultAzureCredential()
             self.client = ServiceBusClient(
-                settings.sb_mi_ns, credential)
+                settings.sb_full_ns, credential)
 
     async def process(self):
         while True:

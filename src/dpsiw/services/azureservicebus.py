@@ -13,6 +13,9 @@ settings = get_settings_instance()
 class AzureSB:
     def __init__(self):
         self.queue_name = settings.sb_queue_name
+        self.client: ServiceBusClient = None
+        self.adminclient: ServiceBusAdministrationClient = None
+
         if settings.is_dev:
             self.client = ServiceBusClient.from_connection_string(
                 settings.sb_connection_string)
@@ -20,11 +23,10 @@ class AzureSB:
                 settings.sb_connection_string)
         else:
             credential = DefaultAzureCredential()
-            self.client = ServiceBusClient(settings.sb_mi_ns, credential)
+            self.client = ServiceBusClient(settings.sb_full_ns, credential)
             self.adminclient = ServiceBusAdministrationClient(
-                settings.sb_mi_ns, credential)
-        self.sender = self.client.get_queue_sender(
-            queue_name=settings.sb_queue_name)
+                settings.sb_full_ns, credential)
+
         self.receiver = self.client.get_queue_receiver(
             queue_name=settings.sb_queue_name)
 
