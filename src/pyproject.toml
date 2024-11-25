@@ -9,14 +9,16 @@ authors = [
 ]
 description = "Distributed Intelligent Processing system (dpsiw)"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
 dependencies = [
+  "build",
   "click",
+  "click-aliases",
   "fastapi",
   "uvicorn[standard]",
   "watchdog",
@@ -25,9 +27,13 @@ dependencies = [
   "azure-data-tables",
   "azure-storage-blob",
   "azure-cognitiveservices-speech",
+  "aiohttp",
+  "azure-servicebus",
   "python-dotenv",
-  "semantic-kernel==1.8.0",
-  "tiktoken"
+  "tiktoken",
+  "pymongo",
+  "python-multipart",
+  "requests"
 ]
 dynamic = ["version"]
 
