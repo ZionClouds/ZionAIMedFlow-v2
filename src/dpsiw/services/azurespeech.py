@@ -1,3 +1,4 @@
+import os
 from time import sleep
 import uuid
 
@@ -120,18 +121,22 @@ class AzureSTT(Transcriber):
     Azure Speech to text service
     """
 
-    # def __init__(self, speech_key: str, service_region: str = 'centralus', mock: bool = False) -> str:
-    #     self.speech_key = speech_key
-    #     self.service_region = service_region
-    #     self.mock = mock
-
     def __init__(self, mock: bool = False) -> None:
         self.mock = mock
 
     def transcribe(self, opts: TranscribeOpts | None = None) -> str:
 
         if self.mock:
-            return "/home/alex/github/am8850/zebra/audio/jmdoe-1-mock.txt"
+            # local_folder = os.path.dirname(os.path.abspath(__file__))
+            # segments = local_folder.split("/")
+            # file = segments[:5] + "/audio/jmdoe-1-mock.txt"
+
+            # # read the file
+            # text = ''
+            # with open(file, 'r') as f:
+            #     text = f.read()
+            # TODO: return the text
+            return ""
 
         # This example requires environment variables named "SPEECH_KEY" and "SPEECH_REGION"
         if not self.mock:
