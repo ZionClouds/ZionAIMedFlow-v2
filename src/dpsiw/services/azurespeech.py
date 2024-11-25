@@ -127,16 +127,15 @@ class AzureSTT(Transcriber):
     def transcribe(self, opts: TranscribeOpts | None = None) -> str:
 
         if self.mock:
-            # local_folder = os.path.dirname(os.path.abspath(__file__))
-            # segments = local_folder.split("/")
-            # file = segments[:5] + "/audio/jmdoe-1-mock.txt"
-
+            # if in mock mode, return a mock transcription
+            local_folder = os.path.dirname(os.path.abspath(__file__))
+            segments = local_folder.split("/")
+            file = "/".join(segments[:5]) + "/audio/jmdoe-1-mock.txt"
             # # read the file
-            # text = ''
-            # with open(file, 'r') as f:
-            #     text = f.read()
-            # TODO: return the text
-            return ""
+            text = ''
+            with open(file, 'r') as f:
+                text = f.read()
+            return text
 
         # This example requires environment variables named "SPEECH_KEY" and "SPEECH_REGION"
         if not self.mock:

@@ -1,4 +1,5 @@
 import asyncio
+import os
 
 import click
 from click_aliases import ClickAliasedGroup
@@ -16,7 +17,6 @@ from dpsiw.workers.sbworker import WorkerSB
 from dpsiw.web.server import Server
 
 # region: Commands
-
 settings = get_settings_instance()
 
 
