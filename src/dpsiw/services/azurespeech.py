@@ -137,7 +137,7 @@ class AzureSTT(Transcriber):
         if not self.mock:
             # speech_config = speechsdk.SpeechConfig(
             #     subscription=self.speech_key, region=self.service_region)
-            speech_config = None
+            speech_config: speechsdk.SpeechConfig = None
             if settings.is_dev:
                 speech_config = speechsdk.SpeechConfig(
                     subscription=settings.speech_key, region=settings.speech_region)
