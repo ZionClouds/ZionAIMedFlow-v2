@@ -180,7 +180,7 @@ def transcribe(file: str, output: str):
     click.echo(click.style(f"Transcribing file {file} to {output}", fg="cyan"))
     opts = TranscribeOpts(file_path=file)
     settings: SettingsService = get_settings_instance()
-    tts: Transcriber = AzureSTT(settings.speech_key, settings.speech_region)
+    tts: Transcriber = AzureSTT()
     transcribed_file = tts.transcribe(opts=opts)
     contents = read_text_file(transcribed_file)
     write_text_file(output, contents)

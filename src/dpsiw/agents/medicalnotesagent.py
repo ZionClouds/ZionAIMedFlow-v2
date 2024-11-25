@@ -24,6 +24,7 @@ class MedicalNotesAgent(Agent):
         self.specialty: str = "GP"
         self.system_prompt: str = ""
         self.medical_notes: str = ""
+        # Agents should know where to get the blobs from
         self.blob_container = AzureBlobContainer(
             constants.MEDICAL_NOTES_BLOB_CONTAINER)
         self.blob_name: str = None
@@ -130,8 +131,7 @@ class MedicalNotesAgent(Agent):
                 file_path=file_path)
             # tts: Transcriber = AzureSTT(
             #     self.settings.speech_key, self.settings.speech_region)
-            tts: Transcriber = AzureSTT(
-                self.settings.azSpeechResourceId, self.settings.speech_region)
+            tts: Transcriber = AzureSTT()
             transcribed_file = tts.transcribe(opts=opts)
             self.transcript_text = read_text_file(transcribed_file)
 
