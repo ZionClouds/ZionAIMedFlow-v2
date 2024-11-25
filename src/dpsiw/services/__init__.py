@@ -1,4 +1,4 @@
-from .settings import *
+from .settingsservice import *
 from .azurequeue import *
 from .azuretable import *
 from .mockpysiciandata import *

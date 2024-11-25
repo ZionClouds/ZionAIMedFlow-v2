@@ -6,7 +6,7 @@ from dpsiw.constants import constants
 from dpsiw.messages.message import DynMessage, LLMOpts, Message, ProductGenerationMD, MedicalNotesMD, SentimentMD
 from azure.storage.queue import QueueClient
 
-from dpsiw.services.settings import get_settings_instance
+from dpsiw.services.settingsservice import get_settings_instance
 
 
 class MockProducer:

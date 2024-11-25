@@ -3,7 +3,7 @@ from pydantic import BaseModel
 
 
 from dpsiw.messages.message import LLMOpts
-from dpsiw.services.settings import Settings
+from dpsiw.services.settingsservice import SettingsService
 
 
 class GPTMessage(BaseModel):

@@ -1,11 +1,11 @@
 import logging
 import os
 from urllib.parse import urlparse
+
 from azure.identity import DefaultAzureCredential
 from azure.storage.blob import BlobServiceClient
 import click
-
-from dpsiw.services.settings import Settings, get_settings_instance
+from dpsiw.services.settingsservice import SettingsService, get_settings_instance
 
 
 def get_blob_name(url: str) -> str | None:
@@ -40,7 +40,7 @@ def get_file_name_and_extension(url) -> tuple[str, str]:
     return file_name, '.' + file_extension
 
 
-settings: Settings = get_settings_instance()
+settings: SettingsService = get_settings_instance()
 
 
 class AzureBlobContainer:
@@ -56,9 +56,15 @@ class AzureBlobContainer:
             self.blob_service_client = AzureBlobContainer.get_blob_service_client()
 
     @staticmethod
-    def get_blob_service_client(account_url=settings.storage_url) -> BlobServiceClient:
-        credential = DefaultAzureCredential()
-        blob_service_client = BlobServiceClient(account_url, credential=credential)
+    def get_blob_service_client() -> BlobServiceClient:
+        blob_service_client: BlobServiceClient = None
+        if settings.is_dev:
+            blob_service_client = BlobServiceClient.from_connection_string(
+                settings.storage_connection_string)
+        else:
+            credential = DefaultAzureCredential()
+            blob_service_client = BlobServiceClient(
+                settings.storage_url, credential=credential)
         return blob_service_client
 
     def create_container(self):

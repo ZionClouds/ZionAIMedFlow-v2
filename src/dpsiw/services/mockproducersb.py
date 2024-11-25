@@ -5,7 +5,7 @@ import click
 from dpsiw.constants import constants
 from dpsiw.messages.message import DynMessage, LLMOpts, Message, ProductGenerationMD, MedicalNotesMD, SentimentMD
 from dpsiw.services.azureservicebus import get_azuresb_instance
-from dpsiw.services.settings import get_settings_instance
+from dpsiw.services.settingsservice import get_settings_instance
 
 
 class MockProducerSB:
@@ -43,9 +43,9 @@ class MockProducerSB:
                                       llmopts=LLMOpts(
                                           type="azure",
                                           model="gpt-4o",
-                                          endpoint=self.settings.endpoint,
-                                          api_key=self.settings.api_key,
-                                          version=self.settings.version),
+                                          endpoint=self.settings.openai_endpoint,
+                                          api_key=self.settings.openai_key,
+                                          version=self.settings.openai_version),
                                       )
                 case 3:
                     system_message = "You are an AI product description generator for used automobiles.\nThe user will provide a simple description and you need to generate the most appealing sales description you can to drive sales.\nNo prologue."
@@ -56,9 +56,9 @@ class MockProducerSB:
                                           type="azure",
                                           model="gpt-4o",
                                           temperature=0.7,
-                                          endpoint=self.settings.endpoint,
-                                          api_key=self.settings.api_key,
-                                          version=self.settings.version,
+                                          endpoint=self.settings.openai_endpoint,
+                                          api_key=self.settings.openai_key,
+                                          version=self.settings.openai_version,
                                           system_message=system_message),
                                       )
                 case 4:

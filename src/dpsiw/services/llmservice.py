@@ -1,9 +1,35 @@
 import logging
+
 from openai import OpenAI, AzureOpenAI
-
-
+from azure.identity import DefaultAzureCredential, get_bearer_token_provider
 from dpsiw.messages.message import LLMOpts
+from dpsiw.services.settingsservice import get_settings_instance
 from dpsiw.tools.gpttool import GPTMessage
+
+settings = get_settings_instance()
+aoaiclient = None
+
+
+def get_aoai_client_instance():
+    """
+    Get the Azure OpenAI client instance
+    """
+    global aoaiclient
+    if aoaiclient is None:
+        token_provider = get_bearer_token_provider(
+            DefaultAzureCredential(), "https://cognitiveservices.azure.com/.default"
+        )
+        if settings.is_dev:
+            aoaiclient = AzureOpenAI(azure_endpoint=settings.openai_endpoint,
+                                     azure_ad_token_provider=token_provider,
+                                     api_key=settings.openai_key,
+                                     api_version=settings.openai_version)
+        else:
+            aoaiclient = AzureOpenAI(azure_endpoint=settings.openai_endpoint,
+                                     azure_ad_token_provider=token_provider,
+                                     # api_key=settings.api_key,
+                                     api_version=settings.openai_version)
+    return aoaiclient
 
 
 class LLMService:

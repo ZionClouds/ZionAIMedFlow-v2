@@ -9,13 +9,15 @@ from dpsiw.services.fileservices import delete_file, read_text_file, write_text_
 from dpsiw.services.mgdatabase import MongoDBService
 from dpsiw.services.mockdatagenerators import MockGenerator
 from dpsiw.services.mockproducersb import MockProducerSB
-from dpsiw.services.settings import Settings, get_settings_instance
+from dpsiw.services.settingsservice import SettingsService, get_settings_instance
 from dpsiw.services.filewatcher import watch_folder
 from dpsiw.services.mockpysiciandata import init_mock_physician_data
 from dpsiw.workers.sbworker import WorkerSB
 from dpsiw.web.server import Server
 
 # region: Commands
+
+settings = get_settings_instance()
 
 
 @ click.group(cls=ClickAliasedGroup)
@@ -177,7 +179,7 @@ def transcribe(file: str, output: str):
         return
     click.echo(click.style(f"Transcribing file {file} to {output}", fg="cyan"))
     opts = TranscribeOpts(file_path=file)
-    settings: Settings = get_settings_instance()
+    settings: SettingsService = get_settings_instance()
     tts: Transcriber = AzureSTT(settings.speech_key, settings.speech_region)
     transcribed_file = tts.transcribe(opts=opts)
     contents = read_text_file(transcribed_file)
@@ -199,4 +201,4 @@ def transcribe(file: str, output: str):
 # endregion: Commands
 
 if __name__ == "__main__":
-    cli()
+    consume()
