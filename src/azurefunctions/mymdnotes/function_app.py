@@ -20,16 +20,27 @@ app = func.FunctionApp()
 
 async def send_queue_message(correlation_id: str, payload: str):
     queue_name = os.getenv("SB_QUEUE")
-    if os.getenv("MSI_CLIENT_ID"):
-        credential = DefaultAzureCredential(managed_identity_client_id=os.getenv("MSI_CLIENT_ID"))
+
+    # Authentica to service bus with a connection string or managed identity
+    # NOTE: In PROD use managed identity to authenticate
+    conn_str = os.getenv("SB_CONNECTION_STRING")
+    client_id = os.getenv("MSI_CLIENT_ID")
+    client = None
+
+    if conn_str:
+        client = ServiceBusClient.from_connection_string(
+            os.getenv("SB_CONNECTION_STRING"))
     else:
-        credential = DefaultAzureCredential()
-    client = ServiceBusClient(os.getenv("SB_ENDPOINT"), credential)
-    # client = ServiceBusClient.from_connection_string(
-    #     os.getenv("SB_CONNECTION_STRING"))
+        if os.getenv("MSI_CLIENT_ID"):
+            credential = DefaultAzureCredential(
+                managed_identity_client_id=client_id)
+        else:
+            credential = DefaultAzureCredential()
+        client = ServiceBusClient(os.getenv("SB_ENDPOINT"), credential)
+
+    # Send a message to the queue
     async with client:
         sender = client.get_queue_sender(queue_name=queue_name)
-        # Create a Service Bus message and send it to the queue
         message = ServiceBusMessage(payload, correlation_id=correlation_id)
         await sender.send_messages(message)
         logging.info(f"Message sent to queue: {queue_name}")
@@ -58,7 +69,7 @@ async def StorageTrigger(myblob: func.InputStream):
 
     # Build the message
     message = Message(id=correlation_id,
-                      pid = provider_name,
+                      pid=provider_name,
                       type=MSG_TYPE_MEDICAL_NOTES,
                       metadata=MedicalNotesMD(
                           file_url=myblob.uri,
