@@ -11,6 +11,7 @@ azure-storage-blob
 azure-cognitiveservices-speech
 azure-servicebus
 aiohttp
+openai
 python-dotenv
 tiktoken
 pymongo

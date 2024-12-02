@@ -46,28 +46,31 @@ def mongo_instance():
 class MongoDBService:
     def __init__(self, client: MongoClient = None, db_name: str = 'dips', collection_name: str = constants.COLLECTION_EVENTS, indexes: dict = None):
         self.client = client or mongo_instance()
-        self.db_name = db_name
-        self.db = self.client[db_name]
+        self.db_name = db_name #settings.mongo_suffix
+        self.db = self.client[self.db_name]
+
+        click.echo("Creating database")
         if db_name not in self.client.list_database_names():
             # Create a database with 400 RU throughput that can be shared across
             # the DB's collections
             self.db.command({"customAction": "CreateDatabase",
                              "offerThroughput": 600})
-            click.echo(f"Created db: {db_name}")
+            click.echo(f"Created db: {self.db_name}")
         else:
-            click.echo(f"Using database: {db_name}")
+            click.echo(f"Using database: {self.db_name}")
 
+        
         self.collection_name = collection_name
-        self.collection = self.db[collection_name]
+        self.collection = self.db[self.collection_name]
 
         if collection_name not in self.db.list_collection_names():
             # Creates a unsharded collection that uses the DBs shared throughput
             self.db.command(
-                {"customAction": "CreateCollection", "collection": collection_name}
+                {"customAction": "CreateCollection", "collection": self.collection_name}
             )
-            click.echo(f"Created collection: {collection_name}")
+            click.echo(f"Created collection: {self.collection_name}")
         else:
-            click.echo(f"Using collection: {collection_name}")
+            click.echo(f"Using collection: {self.collection_name}")
 
         self.indexes = indexes
 
@@ -79,6 +82,8 @@ class MongoDBService:
                     "indexes": indexes,
                 }
             )
+
+        print("exited init")
 
     def upsert(self, id, data: dict):
         self.collection.update_one(

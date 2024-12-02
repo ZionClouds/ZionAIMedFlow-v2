@@ -39,6 +39,7 @@ class SettingsService:
             "AZURE_COSMOS_LISTCONNECTIONSTRINGURL")
         # NOTE: Mongo connection string not used in PROD
         self._mongo_connection_string = os.getenv("MONGO_CONNECTION_STRING")
+        self._mongo_suffix = os.getenv("NONGO_ENTITY_SUFFIX") or ""
         # endregion: Mongo
 
         # Region: Azure Storage
@@ -133,6 +134,10 @@ class SettingsService:
     @property
     def mongo_listconnectionstringurl(self) -> str:
         return self._mongo_listconnectionstringurl
+    
+    @property
+    def mongo_suffix(self) -> str:
+        return self._mongo_suffix
 
     @property
     def storage_connection_string(self) -> str:
@@ -157,6 +162,8 @@ class SettingsService:
     @property
     def sb_full_ns(self) -> str:
         return self._sb_full_ns
+    
+
 
 
 settings = None

@@ -28,6 +28,7 @@ dependencies = [
   "azure-storage-blob",
   "azure-cognitiveservices-speech",
   "aiohttp",
+  "openai",
   "azure-servicebus",
   "python-dotenv",
   "tiktoken",
