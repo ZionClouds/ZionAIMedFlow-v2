@@ -72,7 +72,7 @@ class MockProducerSB:
                     message = DynMessage(id=id,
                                          type=constants.EXTRACT_DOCUMENT_AGENT,
                                          cid=cid,
-                                         metadata={"file_url": "https://stdipsdevcus.blob.core.windows.net/ocr-in/jmdoe-123456.pdf"})
+                                         metadata={"file_url": "https://stdipsdevcus.blob.core.windows.net/ocr-in/jmdoe-123456-sm.pdf"})
                 case 6:
                     message = DynMessage(id=id,
                                          type=constants.RISK_ANALYSIS_AGENT,

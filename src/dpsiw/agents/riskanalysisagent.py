@@ -99,7 +99,6 @@ Rules:
         if file_path:
 
             self.ocr_text = await self.llmocr.extract_text_async(file_path)
-            click.echo("\n"+self.ocr_text)
 
             if self.ocr_text:
                 await self.process_text_async()

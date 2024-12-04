@@ -41,6 +41,10 @@ class LLMOCRService(PDFExtractor):
         pass
 
     async def extract_text_async(self, file_path: str, dpi: int = 150):
+
+        click.echo(click.style(
+            f"\nExtracting text from File: {file_path}", fg="green"))
+
         # Get the file path
         path = os.path.dirname(file_path)
         if not path:
@@ -53,7 +57,7 @@ class LLMOCRService(PDFExtractor):
             try:
                 #
                 click.echo(click.style(
-                    f"Extracting text from File: {file_path} Page: {idx+1}/{len(pages)}", fg="green"))
+                    f"Processing page: {idx+1}/{len(pages)}", fg="green"))
                 # Save the image
                 tmp_file_path = f'{path}/temp-{idx}.png'
                 page.save(tmp_file_path, 'PNG')
@@ -79,5 +83,8 @@ class LLMOCRService(PDFExtractor):
             finally:
                 if tmp_file_path:
                     delete_file(tmp_file_path)
+        extracted_text = ' '.join(content)
+        click.echo(click.style(
+            f"\nExtracted text from file {file_path}:\n{extracted_text[:100]}", fg="cyan"))
 
-        return ''.join(content)
+        return extracted_text
