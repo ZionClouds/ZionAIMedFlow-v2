@@ -35,23 +35,24 @@ def cli():
         "Distributed Processing System for Intelligent workloads\n", fg="green"))
 
 
-async def send_async(number):
+async def send_async(number: int, type: int) -> None:
     """
     Produce mock messages
     """
     click.echo(click.style(f"Producing {number} messages", fg="cyan"))
     producer = MockProducerSB()
-    await producer.mock_message_producer(number)
+    await producer.mock_message_producer(number, type)
     # await asyncio.sleep(1)
 
 
 @ cli.command(help="Produce mock messages", aliases=['producer'])
 @ click.option('--number', '-n', default=1, help='Number of messages to produce')
-def produce(number: int):
+@ click.option('--type', '-t', default=-1, help='Message type to produce [1-6]')
+def produce(number: int, type: int):
     """
     Command to produce mock messages
     """
-    asyncio.run(send_async(number))
+    asyncio.run(send_async(number, type))
 
 
 async def consume_async(instances: int = 1, endless: bool = False):

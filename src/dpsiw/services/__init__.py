@@ -8,3 +8,4 @@ from .azurespeech import *
 from .servicecontainer import *
 from .llmservice import *
 from .mgdatabase import *
+from .llmocrservice import *

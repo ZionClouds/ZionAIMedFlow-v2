@@ -17,3 +17,4 @@ tiktoken
 pymongo
 python-multipart
 requests
+pdf2image

@@ -12,11 +12,16 @@ class constants:
     SERVICE_MESSAGES_REPOSITORY = 'messages_repository'
 
     MEDICAL_NOTES_BLOB_CONTAINER = 'medical-notes-in'
+    OCR_BLOB_CONTAINER = 'ocr-in'
+    RISK_ANALYSIS_BLOB_CONTAINER = 'riskanalysis-in'
 
     MEDICAL_NOTES_AGENT = 'MedicalNotesAgent'
-    OCR_DOCUMENT_AGENT = 'OCRAgent'
+    EXTRACT_DOCUMENT_AGENT = 'ExtractAgent'
+    RISK_ANALYSIS_AGENT = 'RiskAnalysisAgent'
 
     COLLECTION_EVENTS = 'events'
     COLLECTION_PHYSICIANS = 'physicians'
     COLLECTION_TRANSCRIPTIONS = 'transcriptions'
     COLLECTION_TEMPLATES = 'templates'
+    COLLECTION_EXTRACT = 'extract'
+    COLLECTION_RISKANALYSIS = 'riskanalysis'

@@ -13,13 +13,16 @@ class MockProducerSB:
         self.azuresb = get_azuresb_instance()
         self.settings = get_settings_instance()
 
-    async def mock_message_producer(self, n: int = 1):
+    async def mock_message_producer(self, n: int = 1, type: int = -1):
         if not self.azuresb:
             raise Exception("")
         ctx = 0
         while True:
             id = str(uuid.uuid4())
-            random_number = random.randint(1, 1)
+            cid = str(uuid.uuid4())
+            random_number = random.randint(5, 6)
+            if type >= 1 and type <= 6:
+                random_number = type
             message: Message = None
             match random_number:
                 case 1:
@@ -62,8 +65,19 @@ class MockProducerSB:
                                           system_message=system_message),
                                       )
                 case 4:
-                    message = DynMessage(id=id, type="ProductGeneration",
+                    message = DynMessage(id=id,
+                                         type="ProductGeneration",
                                          metadata={"content": "2018 Silver Ford Explorer Platinum V6 for $20000", "price": 20000})
+                case 5:
+                    message = DynMessage(id=id,
+                                         type=constants.EXTRACT_DOCUMENT_AGENT,
+                                         cid=cid,
+                                         metadata={"file_url": "https://stdipsdevcus.blob.core.windows.net/ocr-in/jmdoe-123456.pdf"})
+                case 6:
+                    message = DynMessage(id=id,
+                                         type=constants.RISK_ANALYSIS_AGENT,
+                                         cid=cid,
+                                         metadata={"file_url": "https://stdipsdevcus.blob.core.windows.net/riskanalysis-in/contoso-contract.pdf"})
                 case _:
                     pass
             if message:
