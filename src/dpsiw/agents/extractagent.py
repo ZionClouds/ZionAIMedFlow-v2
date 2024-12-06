@@ -4,11 +4,12 @@ import logging
 
 import click
 from dpsiw.constants import constants
+from dpsiw.exceptions import CompletedException
 from dpsiw.services.azureblob import AzureBlobContainer
 from dpsiw.services.fileservices import delete_file
 from dpsiw.services.llmocrservice import LLMOCRService
 from dpsiw.services.llmservice import LLMService, get_aoai_client_instance
-from dpsiw.services.mgdatabase import MongoDBService, TranscriptionsRepository
+from dpsiw.services.mgdatabase import MongoDBService, OCRLogRepository, TranscriptionsRepository
 from dpsiw.services.settingsservice import SettingsService, get_settings_instance
 from dpsiw.tools.gpttool import GPTMessage
 from .agent import Agent
@@ -33,8 +34,9 @@ class ExtractAgent(Agent):
         # self.log_transcription = TranscriptionsRepository()
         self.llm = LLMService(get_aoai_client_instance(is_async=True))
         self.llmocr = LLMOCRService()
-        self.ocr_text: str = ""
+        self.text: str = ""
         self.results: str = ""
+        self.log = OCRLogRepository()
 
     async def process_text_async(self) -> str:
         # self.log_workflow(
@@ -59,7 +61,7 @@ Rules:
     "dofs": "12/12/2021"
 }
 """),
-            GPTMessage(role="user", content=self.ocr_text)
+            GPTMessage(role="user", content=self.text)
         ]
 
         self.results = await self.llm.completion_aio(llmopts, messages)
@@ -78,54 +80,50 @@ Rules:
     async def process(self, message: Message):
         # Receiving PDF message
         self.message = message
-        await asyncio.sleep(.1)
 
         click.echo(click.style(
             f"{datetime.now().timestamp()} Processing {self.message.type}", fg='yellow'))
         click.echo(f"{self.message.metadata}")
+        self.log.insert(self.message.id, self.message.pid, self.message.cid,
+                        self.message.type, self.message.metadata.file_url, self.text, self.results, 'Message received')
 
-        metadata = self.message.metadata
         click.echo(f"Blob {self.message.metadata.file_url}")
+
+        self.log.insert(self.message.id, self.message.pid, self.message.cid,
+                        self.message.type, self.message.metadata.file_url, self.text, self.results, 'Blob downloading')
 
         file_path = self.blob_container.download_blob_url(
             self.message.metadata.file_url)
 
-        print(f"File path: {file_path}")
+        if not file_path:
+            self.log.insert(self.message.id, self.message.pid, self.message.cid,
+                            self.message.type, self.message.metadata.file_url, self.text, self.results, 'failure - downloading blob')
+            raise CompletedException('error-Invalid blob')
+
+        self.log.insert(self.message.id, self.message.pid, self.message.cid,
+                        self.message.type, self.message.metadata.file_url, self.text, self.results, 'Blob downloaded')
+
         if file_path:
 
-            self.ocr_text = await self.llmocr.extract_text_async(file_path)
+            self.log.insert(self.message.id, self.message.pid, self.message.cid,
+                            self.message.type, self.message.metadata.file_url, self.text, self.results, 'processing - OCR')
+            self.text = await self.llmocr.extract_text_async(file_path)
+            if not self.text:
+                if not file_path:
+                    self.log.insert(self.message.id, self.message.pid, self.message.cid,
+                                    self.message.type, self.message.metadata.file_url, self.text, self.results, 'failure - document OCR - no text')
+                    raise CompletedException('error-Invalid blob')
 
-            if self.ocr_text:
+            if self.text:
+                self.log.insert(self.message.id, self.message.pid, self.message.cid,
+                                self.message.type, self.message.metadata.file_url, self.text, self.results, 'processing - LLM')
                 await self.process_text_async()
 
+                if not self.results:
+                    self.log.insert(self.message.id, self.message.pid, self.message.cid,
+                                    self.message.type, self.message.metadata.file_url, self.text, self.results, 'failure - no LLM results generated')
+                else:
+                    self.log.insert(self.message.id, self.message.pid, self.message.cid,
+                                    self.message.type, self.message.metadata.file_url, self.text, self.results, 'completed')
+
             delete_file(file_path)
-
-        # (status, error_message) = self.pre_validate()
-        # if not status:
-        #     logging.error(error_message)
-        #     return
-
-        # self.log_workflow('received')
-
-        # # Workflow
-        # self.log_workflow('processing')
-
-        # # OpenAI client
-        # client = None
-        # if self.message.llmopts.type == 'azure':
-        #     client = AzureOpenAI(azure_endpoint=self.message.llmopts.endpoint,
-        #                          api_key=self.message.llmopts.api_key,
-        #                          api_version=self.message.llmopts.version)
-        # else:
-        #     client = OpenAI(self.message.llmopts.api_key)
-        # llm_service = LLMService(client)
-        # self.analyze(llm_service)
-
-        # (status, error_message) = self.post_validate()
-        # if status:
-        #     self.save()
-        #     self.log_workflow('completed', True)
-        #     return True
-        # else:
-        #     self.log_workflow('failure', True)
-        #     return False

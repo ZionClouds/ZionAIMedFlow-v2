@@ -46,7 +46,7 @@ def mongo_instance():
 class MongoDBService:
     def __init__(self, client: MongoClient = None, db_name: str = 'dips', collection_name: str = constants.COLLECTION_EVENTS, indexes: dict = None):
         self.client = client or mongo_instance()
-        self.db_name = db_name #settings.mongo_suffix
+        self.db_name = db_name  # settings.mongo_suffix
         self.db = self.client[self.db_name]
 
         click.echo("Creating database")
@@ -59,14 +59,14 @@ class MongoDBService:
         else:
             click.echo(f"Using database: {self.db_name}")
 
-        
         self.collection_name = collection_name
         self.collection = self.db[self.collection_name]
 
         if collection_name not in self.db.list_collection_names():
             # Creates a unsharded collection that uses the DBs shared throughput
             self.db.command(
-                {"customAction": "CreateCollection", "collection": self.collection_name}
+                {"customAction": "CreateCollection",
+                    "collection": self.collection_name}
             )
             click.echo(f"Created collection: {self.collection_name}")
         else:
@@ -177,6 +177,51 @@ class TranscriptionsRepository:
 
         self.mongo_service.upsert(id, evt)
 
+
+class OCRLogRepository:
+    def __init__(self):
+        indexes = [
+            {"key": {"_id": 1}, "name": "_id"},
+            {"key": {"updated": 2}, "name": "updated"},
+        ]
+        self.mongo_service = MongoDBService(
+            collection_name=constants.COLLECTION_DOC_INTELLIGENCE, indexes=indexes)
+
+    def insert(self, id: str, pid: str, cid: str, type: str, file_url: str, text: str, results, status: str = 'processing') -> None:
+        """
+        This method is used to log the status of a workflow
+        """
+        doc = self.mongo_service.find_id(id)
+        tsexists = doc and bool(doc['tstranscription'])
+        noteexists = doc and bool(doc['tsnotes'])
+
+        tsTextTran = None
+        if text and not tsexists:
+            tsTextTran = datetime.now(timezone.utc)
+        if text and tsexists:
+            tsTextTran = doc['tstranscription']
+
+        tsResult = None
+        if results and not noteexists:
+            tsResult = datetime.now(timezone.utc)
+        if results and noteexists:
+            tsResult = doc['tsnotes']
+
+        evt = {
+            'pid': pid,
+            'type': type,
+            'cid': cid,
+            'file_url': file_url,
+            'text': text,
+            'tstranscription': tsTextTran,
+            'results': results,
+            'updatedResults': results,
+            'tsnotes': tsResult,
+            'status': status,
+            'updated': datetime.now(timezone.utc)
+        }
+
+        self.mongo_service.upsert(id, evt)
 
 # Example usage:
 # db_service = MongoDBService('mongodb://localhost:27017/', 'mydatabase')

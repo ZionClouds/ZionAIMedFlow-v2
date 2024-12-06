@@ -22,6 +22,7 @@ class constants:
     COLLECTION_EVENTS = 'events'
     COLLECTION_PHYSICIANS = 'physicians'
     COLLECTION_TRANSCRIPTIONS = 'transcriptions'
+    COLLECTION_DOC_INTELLIGENCE = 'docintelligence'
     COLLECTION_TEMPLATES = 'templates'
     COLLECTION_EXTRACT = 'extract'
     COLLECTION_RISKANALYSIS = 'riskanalysis'
