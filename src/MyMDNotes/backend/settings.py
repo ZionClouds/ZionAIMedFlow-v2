@@ -9,6 +9,7 @@ class Settings:
         # self.table_connection_string = os.getenv("TABLE_CONNECTION_STRING")
         # self.queue_connection_string = os.getenv("QUEUE_CONNECTION_STRING")
         self.blob_connection_string = os.getenv("STORAGE_CONNECTION_STRING")
+        #print(self.blob_connection_string)
         # self.type = os.getenv("TYPE") or "azure"
         # self.chat_model = os.getenv("CHAT_MODEL")
         # self.endpoint = os.getenv("ENDPOINT")
@@ -22,7 +23,7 @@ class Settings:
         # self.pg_password = os.getenv("PG_PASSWORD")
         # self.pg_database = os.getenv("PG_DATABASE")
         # self.pg_sslmode = os.getenv("PG_SSLMODE")
-        # self.mongo_conn_str = os.getenv("MONGO_DB")
+        #self.mongo_conn_str = os.getenv("MONGO_DB")
         self.mongo_listconnectionstringurl = os.getenv("AZURE_COSMOS_LISTCONNECTIONSTRINGURL") # Azure CosmosDB list connection string URL Ex: 'https://management.azure.com/subscriptions/<subscription-ID>/resourceGroups/<resource-group-name>/providers/Microsoft.DocumentDB/databaseAccounts/<Azure-Cosmos-DB-API-for-MongoDB-account>/listConnectionStrings?api-version=2024-08-15'
         # self.storage_url = os.getenv("STORAGE_URL")
         # self.storage_key = os.getenv("STORAGE_KEY")

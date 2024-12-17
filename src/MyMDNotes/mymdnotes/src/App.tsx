@@ -1,15 +1,10 @@
-import { createEffect, createSignal, For } from 'solid-js'
-import axios from 'axios'
-import { TbPlayerRecordFilled } from 'solid-icons/tb'
-import { FiSearch, FiUpload } from 'solid-icons/fi'
-import Popup from './components/popup'
-import { IoExpand } from 'solid-icons/io'
-import { AiOutlineEdit } from 'solid-icons/ai'
+import { createEffect, createSignal, onCleanup } from 'solid-js';
+import axios from 'axios';
+import { Header, Main } from './components';
 
-// @ts-ignore
-const BASE_URL = window.base_url;
-//const BASE_URL = import.meta.env.VITE_BASE_URL as string
 
+const BASE_URL = "http://127.0.0.1:8000/";//import.meta.env.VITE_BASE_URL; // "https://medflow-jagoh3evy7f-cabackend.victoriouswave-a4fd2c3d.eastus2.azurecontainerapps.io/" replace with the actual base URL
+//const BASE_URL = "https://medflow-jagoh3evy7f-cabackend.victoriouswave-a4fd2c3d.eastus2.azurecontainerapps.io/";
 export async function GetAuthHeader() {
   function IsExpired(token: string) {
     const base64Url = token.split(".")[1];
@@ -67,17 +62,17 @@ export async function GetAuthHeader() {
     throw error
   }
 }
-
+// Auth logic moved into a function
 export interface INote {
-  pid: string
-  id: string
-  status: string
-  file_id: string
-  file_url: string
-  transcription: string
-  notes: string
-  updatedNotes: string
-  updated: Date
+  pid: string;
+  id: string;
+  status: string; 
+  file_id: string;
+  file_url: string;
+  transcription: string;
+  notes: string;
+  updatedNotes: string;
+  updated: Date;
 }
 
 function App() {
@@ -90,15 +85,9 @@ function App() {
   const [selectedNote, setSelectedNote] = createSignal<INote | null>(null)
   const [selectedTarget, setSelectedTarget] = createSignal('transcription')
   const [readTokenName, setEasyAuthTokenUser] = createSignal<string>();
-  //const [readEasyAuthTokenUserRole, setEasyAuthTokenUserRole] = createSignal<string[]>([]);
 
-  const handleLogOut = (): void => {
-    // Redirect to logout url
-    const ask = confirm('Are you sure you want to logout?')
-    if (ask)
-      window.location.href = '.auth/logout'
-  }
-
+  // Run authentication and handle redirect response on component mount
+ 
   // Loading Easy Auth Current Logged User and User Roles claims
   createEffect(async () => {
     try {
@@ -117,7 +106,7 @@ function App() {
         try {
           const token = JSON.parse(atob(authToken.id_token.split('.')[1]))
           let userId = token.preferred_username.split('@')[0]
-          setUser({ name: token.name, id: userId, email: token.email })
+          setUser({ name: token.name, id: "jmdoe", email: token.email })//id: userId
           //setEasyAuthTokenUserRole(token.roles)
         } catch (error) {
           console.log(error)
@@ -132,198 +121,465 @@ function App() {
   })
 
   const uploadFile = async (file: File) => {
-    if (uploading())
-      return
+    if (uploading()) return;
 
     if (!file) {
-      alert('No file was selected for upload')
-      return
+      alert('No file was selected for upload');
+      return;
     }
 
-    setUploading(true)
+    setUploading(true);
     const formData = new FormData();
     formData.append('file', file);
 
     try {
-      let headers = await GetAuthHeader()
-      if (headers) {
-        headers['Content-Type'] = 'multipart/form-data';
-      }
-      const response = await axios.post(BASE_URL + 'upload/' + user().id, formData, { headers });
-
+      const response = await axios.post(BASE_URL + 'upload/' + user().id, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
       console.log('File uploaded successfully:', response.data);
     } catch (error) {
       console.error('Error uploading file:', error);
+    } finally {
+      setFile(null);
+      setUploading(false);
     }
-    finally {
-      setFile(null)
-      setUploading(false)
-    }
-  }
+  };
 
   const handleFileChange = (event: Event) => {
-
     const input = event.target as HTMLInputElement;
-    if (input.files && input.files.length > 0) {
+    if (input.files !== null && input.files.length > 0) {
       const file = input.files[0];
-      //alert('File changed')
-      setFile(file)
+      console.log('test file change', input.files);
+      setFile(file);
     }
-  }
+  };
 
   const handleUpload = async () => {
     if (file()) {
-      await uploadFile(file()!)
+      await uploadFile(file()!);
     }
-  }
+  };
 
   const updateNotes = async () => {
     try {
-      let headers = await GetAuthHeader()
-      const response = await axios.get<INote[]>(BASE_URL + 'notes/' + user().id, { headers });
+      const response = await axios.get<INote[]>(BASE_URL + 'notes/' + user().id);
       const data = response.data;
-      setNotes(data)
+      setNotes(data);
       console.log('Notes updated:', response.data);
     } catch (error) {
       console.error('Error updating notes:', error);
     }
-  }
+  };
 
   createEffect(() => {
     const interval = setInterval(async () => {
       await updateNotes();
     }, 2000);
 
-    return () => clearInterval(interval);
+    onCleanup(() => {
+      clearInterval(interval); // Clear the interval when the component is destroyed
+    });
   });
 
   const edit = async (note: INote) => {
     try {
-      let headers = await GetAuthHeader()
-      await axios.post(BASE_URL + 'notes', note, { headers });
-    }
-    catch (error) {
+      await axios.post(BASE_URL + 'notes', note);
+    } catch (error) {
       console.error('Error updating notes:', error);
+    } finally {
+      setShowModal(false);
     }
-    finally {
-      setShowModal(false)
-    }
-  }
+  };
+
+  const handleOpenModal = (): void => {
+    setShowModal(true);
+  };
+
+  const handleCloseModal = (): void => {
+    setShowModal(false);
+  };
+
+  const handleSelectNote = (note: INote): void => {
+    setSelectedNote(note);
+  };
+
+  const handleSelectTarget = (type: string): void => {
+    setSelectedTarget(type);
+  };
 
   return (
     <>
-      <header class="h-[45px] flex items-center bg-slate-950 text-white px-3">
-        <div class="flex-grow">
-          <h1 class="font-bold text-lg">My MD Notes</h1>
-        </div>
-        <div class='space-x-2'>
-          {/* {authorized() && <>
-            <span class='text-sm bg-slate-800 p-1'>Jane Marie Doe, MD</span>
-            <button>Logout</button>
-          </>}
-          {!authorized() && <>
-            <button>Login</button>
-          </>} */}
-          {(!!readTokenName()) && (
-            <span class='text-sm bg-slate-800 p-1'>{readTokenName()}</span>
-          )}
-          <button class='button button-text font-semibold hover:underline' onclick={handleLogOut}>Sign&nbsp;out</button>
-        </div>
-      </header>
-
-      <section class="h-[calc(100vh-45px-30px)] overflow-auto flex flex-col bg-slate-900 text-white">
-        <section class="flex items-center">
-          <button class="w-[75px] h-[75px] md:w-[125px] md:h-[125px] bg-red-600 text-white font-semibold flex flex-col items-center justify-center">
-            <TbPlayerRecordFilled class='text-2xl md:text-5xl' />
-            <span>Record Audio</span>
-          </button>
-
-          <div class='w-[75px] h-[75px] md:w-[125px] md:h-[125px] bg-blue-600 text-white font-semibold flex flex-col items-center justify-center'>
-            <label for="file-upload" class='hover:bg-blue-700 hover:cursor-pointer p-1 text-sm'>
-              Upload
-            </label>
-            <div class="w-full overflow-clip">
-              <div class="truncate text-xs text-white px-1">
-                {file() ? <label title={file()?.name}>{file()?.name}</label> : <span>&nbsp;</span>}
-              </div>
-            </div>
-            <input class="text-sm hidden"
-              type="file" id="file-upload" onChange={handleFileChange} />
-            <button class='bg-blue-600 px-1 hover:bg-blue-700' onClick={handleUpload}>
-              <FiUpload class={'text-xl md:text-3xl ' + (uploading() ? "animate-pulse" : "")} />
-            </button>
-          </div>
-        </section>
-        <section class="h-full bg-slate-800 p-4">
-          <h2 class='mb-4 text-lg font-bold text-center'>Processed Encounters</h2>
-          <div class='flex mb-2 items-center'>
-            <div class="flex-grow"></div>
-            <input type="search" class='w-full md:max-w-[300px] outline-none resize-none border text-black' />
-            <FiSearch />
-          </div>
-          <For each={notes()}>
-            {note => <div class='flex flex-col mb-4 bg-gray-600 rounded-lg overflow-clip shadow-lg text-sm md:text-base'>
-              <div class='hidden md:flex bg-black text-white space-x-1 md:space-x-2 items-center'>
-                <label class='font-semibold p-2 uppercase'>File ID</label>
-                <label class='p-2'>{note.file_id}</label>
-
-                <label class='font-semibold p-2'>Date</label>
-                <label class='p-2'>{(new Date(note.updated)).toLocaleString()}</label>
-
-                <div class="flex-grow"></div>
-                <label class='font-semibold p-2 uppercase'>Status</label>
-                <label class='bg-green-700 p-2'>{note.status}</label>
-              </div>
-              <div class='flex flex-col md:hidden px-2 mt-2 bg-black'>
-                <div class='flex space-x-2'>
-                  <label class='font-semibold uppercase w-12'>File ID</label>
-                  <label class=''>{note.file_id}</label>
-                  <div class="flex-grow"></div>
-                  <label class='font-semibold uppercase'>Status</label>
-                  <label class='bg-green-700'>{note.status}</label>
-                </div>
-                <div class='flex items-center space-x-2'>
-                  <label class='font-semibold uppercase w-12'>Date</label>
-                  <label class=''>{(new Date(note.updated)).toLocaleString()}</label>
-                </div>
-              </div>
-
-              <div class='flex px-2 items-center mt-2'>
-                <label class='font-semibold uppercase'>Transcript</label>
-                <button class='px-3' title='expand'
-                  onClick={() => { setSelectedNote(note); setSelectedTarget('transcription'); setShowModal(true) }}
-                ><IoExpand /></button>
-                <div class="flex-grow"></div>
-              </div>
-              <div class='p-2'>
-                <textarea rows={4} class='w-full border outline-none resize-none p-1 bg-gray-700' value={note.transcription} />
-              </div>
-
-              <div class='flex px-2 items-center mt-2'>
-                <label class='font-semibold uppercase'>Notes</label>
-                <button class='px-3' title='expand'
-                  onClick={() => { setSelectedNote(note); setSelectedTarget('edit'); setShowModal(true) }}
-                ><AiOutlineEdit /></button>
-                <div class="flex-grow"></div>
-              </div>
-              <div class='p-2'>
-                <textarea rows={4} class='w-full border outline-none resize-none p-1 bg-gray-700' value={note.updatedNotes} />
-              </div>
-
-            </div>}
-          </For>
-        </section>
-      </section>
-
-      {showmodal() &&
-        <Popup note={selectedNote()} target={selectedTarget()} closeModal={() => setShowModal(false)} edit={edit} />
-      }
-
-      <footer class="bg-slate-900 h-[30px] text-slate-100 flex items-center text-xs px-2">
-        <span>Ver: 0.0.1a</span>
-      </footer>
+      <Header token_name={readTokenName() ?? ''} />
+      <Main
+        file={file()} 
+        isUploading={uploading()}
+        showmodal={showmodal()}
+        onUpload={handleUpload}
+        onFileChange={handleFileChange}
+        notes={notes()}
+        modalNote={selectedNote()}
+        onOpenModal={handleOpenModal}
+        onCloseModal={handleCloseModal}
+        modalEdit={edit}
+        modalTarget={selectedTarget()}
+        onSelectNote={handleSelectNote}
+        onSelectTarget={handleSelectTarget}
+      />
     </>
   )
 }
 
-export default App
+export default App;
+
+
+// import { createEffect, createSignal, onCleanup } from 'solid-js';
+// import axios from 'axios';
+// import { Header, Main } from './components';
+// import { msalInstance } from './auth/authConfig';
+// import { MsalProvider } from "msal-community-solid";
+
+// const BASE_URL = "http://127.0.0.1:8000/"; // replace with the actual base URL
+
+// // Auth logic moved into a function
+// const authenticateUser = async () => {
+//   const loginRequest = {
+//     scopes: ["user.read"], // optional Array<string>
+//   };
+
+//   try {
+//     // Use loginRedirect instead of loginPopup
+//     await msalInstance.loginRedirect(loginRequest);
+//   } catch (err) {
+//     console.error("Login failed:", err);
+//   }
+// };
+
+// // Function to handle the redirect response after the page reloads
+// const handleRedirectResponse = async () => {
+//   try {
+//     const loginResponse = await msalInstance.handleRedirectPromise();
+//     if (loginResponse) {
+//       console.log("Access token:", loginResponse.accessToken);
+//     }
+//   } catch (error) {
+//     console.error("Error handling redirect:", error);
+//   }
+// };
+
+// export interface INote {
+//   pid: string;
+//   id: string;
+//   status: string;
+//   file_id: string;
+//   file_url: string;
+//   transcription: string;
+//   notes: string;
+//   updatedNotes: string;
+//   updated: Date;
+// }
+
+// function App() {
+//   const [authorized] = createSignal(true);
+//   const [user] = createSignal({ name: 'Jane Marie Doe, MD', id: 'jmdoe', email: 'jmdoe@mdpartners.com' });
+//   const [file, setFile] = createSignal<File | null>(null);
+//   const [uploading, setUploading] = createSignal(false);
+//   const [notes, setNotes] = createSignal<INote[]>([]);
+//   const [showmodal, setShowModal] = createSignal(false);
+//   const [selectedNote, setSelectedNote] = createSignal<INote | null>(null);
+//   const [selectedTarget, setSelectedTarget] = createSignal('transcription');
+
+//   // Run authentication and handle redirect response on component mount
+//   createEffect(() => {
+//     // Handle the redirect response after page reload
+//     handleRedirectResponse();
+
+//     // Initiate login redirect if needed
+//     authenticateUser();
+//   });
+
+//   const uploadFile = async (file: File) => {
+//     if (uploading()) return;
+
+//     if (!file) {
+//       alert('No file was selected for upload');
+//       return;
+//     }
+
+//     setUploading(true);
+//     const formData = new FormData();
+//     formData.append('file', file);
+
+//     try {
+//       const response = await axios.post(BASE_URL + 'upload/' + user().id, formData, {
+//         headers: {
+//           'Content-Type': 'multipart/form-data',
+//         },
+//       });
+//       console.log('File uploaded successfully:', response.data);
+//     } catch (error) {
+//       console.error('Error uploading file:', error);
+//     } finally {
+//       setFile(null);
+//       setUploading(false);
+//     }
+//   };
+
+//   const handleFileChange = (event: Event) => {
+//     const input = event.target as HTMLInputElement;
+//     if (input.files !== null && input.files.length > 0) {
+//       const file = input.files[0];
+//       console.log('test file change', input.files);
+//       setFile(file);
+//     }
+//   };
+
+//   const handleUpload = async () => {
+//     if (file()) {
+//       await uploadFile(file()!);
+//     }
+//   };
+
+//   const updateNotes = async () => {
+//     try {
+//       const response = await axios.get<INote[]>(BASE_URL + 'notes/' + user().id);
+//       const data = response.data;
+//       setNotes(data);
+//       console.log('Notes updated:', response.data);
+//     } catch (error) {
+//       console.error('Error updating notes:', error);
+//     }
+//   };
+
+//   createEffect(() => {
+//     const interval = setInterval(async () => {
+//       await updateNotes();
+//     }, 2000);
+
+//     onCleanup(() => {
+//       clearInterval(interval); // Clear the interval when the component is destroyed
+//     });
+//   });
+
+//   const edit = async (note: INote) => {
+//     try {
+//       await axios.post(BASE_URL + 'notes', note);
+//     } catch (error) {
+//       console.error('Error updating notes:', error);
+//     } finally {
+//       setShowModal(false);
+//     }
+//   };
+
+//   const handleOpenModal = (): void => {
+//     setShowModal(true);
+//   };
+
+//   const handleCloseModal = (): void => {
+//     setShowModal(false);
+//   };
+
+//   const handleSelectNote = (note: INote): void => {
+//     setSelectedNote(note);
+//   };
+
+//   const handleSelectTarget = (type: string): void => {
+//     setSelectedTarget(type);
+//   };
+
+//   return (
+//     <>
+//       <MsalProvider instance={msalInstance}>
+//         <Header authorized={authorized()} />
+//         <Main
+//           file={file()}
+//           isUploading={uploading()}
+//           showmodal={showmodal()}
+//           onUpload={handleUpload}
+//           onFileChange={handleFileChange}
+//           notes={notes()}
+//           modalNote={selectedNote()}
+//           onOpenModal={handleOpenModal}
+//           onCloseModal={handleCloseModal}
+//           modalEdit={edit}
+//           modalTarget={selectedTarget()}
+//           onSelectNote={handleSelectNote}
+//           onSelectTarget={handleSelectTarget}
+//         />
+//       </MsalProvider>
+//     </>
+//   );
+// }
+
+// export default App;
+
+
+
+
+
+
+
+// import { createEffect, createSignal } from 'solid-js'
+// import axios from 'axios'
+// import { Header, Main } from './components'
+// import {msalInstance} from './auth/authConfig'
+// import { MsalProvider } from "msal-community-solid";
+
+// const BASE_URL = "http://127.0.0.1:8000/"//import.meta.env.VITE_BASE_URL as string
+
+// //AUTH CODE
+// var loginRequest = {
+//   scopes: ["user.read"], // optional Array<string>
+// };
+
+// try {
+//   const loginResponse = await msalInstance.loginPopup(loginRequest);
+//   if (loginResponse){
+//     print(loginResponse.accessToken)
+//   }
+// } catch (err) {
+//   // handle error
+// }
+
+// export interface INote {
+//   pid: string
+//   id: string
+//   status: string
+//   file_id: string
+//   file_url: string
+//   transcription: string
+//   notes: string
+//   updatedNotes: string
+//   updated: Date
+// }
+
+// function App() {
+//   const [authorized] = createSignal(true)
+//   const [user] = createSignal({ name: 'Jane Marie Doe, MD', id: 'jmdoe', email: 'jmdoe@mdpartners.com' })
+//   const [file, setFile] = createSignal<File | null>(null)
+//   const [uploading, setUploading] = createSignal(false)
+//   const [notes, setNotes] = createSignal<INote[]>([])
+//   const [showmodal, setShowModal] = createSignal(false)
+//   const [selectedNote, setSelectedNote] = createSignal<INote | null>(null)
+//   const [selectedTarget, setSelectedTarget] = createSignal('transcription')
+
+//   const uploadFile = async (file: File) => {
+//     if (uploading())
+//       return
+
+//     if (!file) {
+//       alert('No file was selected for upload')
+//       return
+//     }
+
+//     setUploading(true)
+//     const formData = new FormData();
+//     formData.append('file', file);
+
+//     try {
+//       const response = await axios.post(BASE_URL + 'upload/' + user().id, formData, {
+//         headers: {
+//           'Content-Type': 'multipart/form-data',
+//         },
+//       });
+//       console.log('File uploaded successfully:', response.data);
+//     } catch (error) {
+//       console.error('Error uploading file:', error);
+//     }
+//     finally {
+//       setFile(null)
+//       setUploading(false)
+//     }
+//   }
+
+//   const handleFileChange = (event: Event) => {
+//     const input = event.target as HTMLInputElement;
+//     if (input.files !== null && input.files.length > 0) {
+//       const file = input.files[0];
+//       console.log('test file change', input.files)
+//       //alert('File changed')
+//       setFile(file)
+//     }
+//   }
+
+//   const handleUpload = async () => {
+//     if (file()) {
+//       await uploadFile(file()!)
+//     }
+//   }
+
+//   const updateNotes = async () => {
+//     try {
+//       const response = await axios.get<INote[]>(BASE_URL + 'notes/' + user().id);
+//       const data = response.data;
+//       setNotes(data)
+//       console.log('Notes updated:', response.data);
+//     } catch (error) {
+//       console.error('Error updating notes:', error);
+//     }
+//   }
+
+//   createEffect(() => {
+//     const interval = setInterval(async () => {
+//       await updateNotes();
+//     }, 2000);
+
+//     return () => clearInterval(interval);
+//   });
+
+//   const edit = async (note: INote) => {
+//     try {
+//       await axios.post(BASE_URL + 'notes', note);
+//     }
+//     catch (error) {
+//       console.error('Error updating notes:', error);
+//     }
+//     finally {
+//       setShowModal(false)
+//     }
+//   }
+
+//   const handleOpenModal = (): void => {
+//     setShowModal(true)
+//   }
+
+//   const handleCloseModal = (): void => {
+//     setShowModal(false)
+//   }
+
+//   const handleSelectNote = (note: INote): void => {
+//     setSelectedNote(note)
+//   }
+
+//   const handleSelectTarget = (type: string): void => {
+//     setSelectedTarget(type)
+//   }
+
+//   return (
+//     <>
+//     <MsalProvider instance={msalInstance}>
+//       <Header
+//         authorized={authorized()}
+//       />
+//       <Main
+//         file={file()} 
+//         isUploading={uploading()}
+//         showmodal={showmodal()}
+//         onUpload={handleUpload}
+//         onFileChange={handleFileChange}
+//         notes={notes()}
+//         modalNote={selectedNote()}
+//         onOpenModal={handleOpenModal}
+//         onCloseModal={handleCloseModal}
+//         modalEdit={edit}
+//         modalTarget={selectedTarget()}
+//         onSelectNote={handleSelectNote}
+//         onSelectTarget={handleSelectTarget}
+//       />
+//       </MsalProvider>
+//     </>
+//   )
+// }
+
+// export default App

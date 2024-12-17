@@ -19,6 +19,7 @@ settings: Settings = get_settings_instance()
 def get_blob_service_client() -> BlobServiceClient:
     credential = DefaultAzureCredential()
     blob_service_client = BlobServiceClient(settings.blob_connection_string, credential=credential)
+    print(settings.blob_connection_string)
     return blob_service_client
 
 blob_service_client = get_blob_service_client()
@@ -164,11 +165,13 @@ async def upload_file(id: str, file: UploadFile = File(...)):
     # Return the blob name
     return {"filename": blob_name}
 
+# Static files setup (unchanged from your original code)
 local_folder = os.path.dirname(os.path.abspath(__file__))
 static_foler = os.path.join(local_folder, 'static')
 print(static_foler)
 app.mount("/", StaticFiles(directory=static_foler,
                            html=True), name="static")
+
 
 if __name__ == "__main__":
     import uvicorn

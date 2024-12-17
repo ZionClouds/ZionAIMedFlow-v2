@@ -9,7 +9,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@azure/msal-browser": "^2.39.0",
     "axios": "^1.7.7",
+    "msal-community-solid": "^0.2.1",
     "solid-icons": "^1.1.0",
     "solid-js": "^1.9.1"
   },
