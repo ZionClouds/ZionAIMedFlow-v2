@@ -5,20 +5,30 @@ from azure.servicebus.management import ServiceBusAdministrationClient
 from azure.identity.aio import DefaultAzureCredential
 import click
 
-from dpsiw.services.settings import get_settings_instance
+from dpsiw.services.settingsservice import get_settings_instance
+
+settings = get_settings_instance()
 
 
 class AzureSB:
-    def __init__(self, queue_name: str, conn_str: str):
-        self.queue_name = queue_name
-        #self.client = ServiceBusClient.from_connection_string(conn_str)
-        credential = DefaultAzureCredential()
-        self.client = ServiceBusClient(conn_str, credential)
-        # self.adminclient = ServiceBusAdministrationClient.from_connection_string(
-        #     conn_str=conn_str)
-        self.adminclient = ServiceBusAdministrationClient(conn_str, credential)
-        self.sender = self.client.get_queue_sender(queue_name=queue_name)
-        self.receiver = self.client.get_queue_receiver(queue_name=queue_name)
+    def __init__(self):
+        self.queue_name = settings.sb_queue_name
+        self.client: ServiceBusClient = None
+        self.adminclient: ServiceBusAdministrationClient = None
+
+        if settings.is_dev:
+            self.client = ServiceBusClient.from_connection_string(
+                settings.sb_connection_string)
+            self.adminclient = ServiceBusAdministrationClient.from_connection_string(
+                settings.sb_connection_string)
+        else:
+            credential = DefaultAzureCredential()
+            self.client = ServiceBusClient(settings.sb_full_ns, credential)
+            self.adminclient = ServiceBusAdministrationClient(
+                settings.sb_full_ns, credential)
+
+        self.receiver = self.client.get_queue_receiver(
+            queue_name=settings.sb_queue_name)
 
     async def send_message(self, id: str, payload: str):
         async with self.client:
@@ -70,13 +80,11 @@ class AzureSB:
             f"Dead-letter Message Count: {queue_runtime_properties.dead_letter_message_count}")
 
 
-settings = get_settings_instance()
 azuresb_instance = None
 
 
 def get_azuresb_instance():
     global azuresb_instance
     if azuresb_instance is None:
-        azuresb_instance = AzureSB(
-            settings.sb_queue_name, settings.sb_connection_string)
+        azuresb_instance = AzureSB()
     return azuresb_instance

@@ -6,7 +6,7 @@ from openai import AzureOpenAI, OpenAI
 
 
 from dpsiw.messages.message import LLMOpts
-from dpsiw.services.settings import Settings, get_settings_instance
+from dpsiw.services.settingsservice import SettingsService, get_settings_instance
 from dpsiw.tools.gpttool import GPTMessage, GPTTool
 
 
@@ -67,7 +67,7 @@ No prologue. Write the transcription only and don't provide section titles.
 
 
 class MockGenerator:
-    def __init__(self, client: OpenAI | AzureOpenAI = None, settings: Settings = None) -> None:
+    def __init__(self, client: OpenAI | AzureOpenAI = None, settings: SettingsService = None) -> None:
         self.client = client
         self.settings = settings or get_settings_instance()
         if self.client is None:

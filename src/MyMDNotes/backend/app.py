@@ -17,8 +17,12 @@ AZURE_CONTAINER_NAME = 'medical-notes-in'
 settings: Settings = get_settings_instance()
 
 def get_blob_service_client() -> BlobServiceClient:
-    credential = DefaultAzureCredential()
-    blob_service_client = BlobServiceClient(settings.blob_connection_string, credential=credential)
+    blob_service_client: BlobServiceClient = None
+    if settings.is_dev:
+        blob_service_client = BlobServiceClient.from_connection_string(settings.storage_connection_string)
+    else:
+        credential = DefaultAzureCredential()
+        blob_service_client = BlobServiceClient(settings.storage_url, credential=credential)
     return blob_service_client
 
 blob_service_client = get_blob_service_client()

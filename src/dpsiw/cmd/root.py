@@ -1,4 +1,5 @@
 import asyncio
+import os
 
 import click
 from click_aliases import ClickAliasedGroup
@@ -9,13 +10,14 @@ from dpsiw.services.fileservices import delete_file, read_text_file, write_text_
 from dpsiw.services.mgdatabase import MongoDBService
 from dpsiw.services.mockdatagenerators import MockGenerator
 from dpsiw.services.mockproducersb import MockProducerSB
-from dpsiw.services.settings import Settings, get_settings_instance
+from dpsiw.services.settingsservice import SettingsService, get_settings_instance
 from dpsiw.services.filewatcher import watch_folder
 from dpsiw.services.mockpysiciandata import init_mock_physician_data
 from dpsiw.workers.sbworker import WorkerSB
 from dpsiw.web.server import Server
 
 # region: Commands
+settings = get_settings_instance()
 
 
 @ click.group(cls=ClickAliasedGroup)
@@ -33,23 +35,24 @@ def cli():
         "Distributed Processing System for Intelligent workloads\n", fg="green"))
 
 
-async def send_async(number):
+async def send_async(number: int, type: int) -> None:
     """
     Produce mock messages
     """
     click.echo(click.style(f"Producing {number} messages", fg="cyan"))
     producer = MockProducerSB()
-    await producer.mock_message_producer(number)
+    await producer.mock_message_producer(number, type)
     # await asyncio.sleep(1)
 
 
 @ cli.command(help="Produce mock messages", aliases=['producer'])
 @ click.option('--number', '-n', default=1, help='Number of messages to produce')
-def produce(number: int):
+@ click.option('--type', '-t', default=-1, help='Message type to produce [1-6]')
+def produce(number: int, type: int):
     """
     Command to produce mock messages
     """
-    asyncio.run(send_async(number))
+    asyncio.run(send_async(number, type))
 
 
 async def consume_async(instances: int = 1, endless: bool = False):
@@ -177,8 +180,8 @@ def transcribe(file: str, output: str):
         return
     click.echo(click.style(f"Transcribing file {file} to {output}", fg="cyan"))
     opts = TranscribeOpts(file_path=file)
-    settings: Settings = get_settings_instance()
-    tts: Transcriber = AzureSTT(settings.speech_key, settings.speech_region)
+    settings: SettingsService = get_settings_instance()
+    tts: Transcriber = AzureSTT()
     transcribed_file = tts.transcribe(opts=opts)
     contents = read_text_file(transcribed_file)
     write_text_file(output, contents)
@@ -199,4 +202,4 @@ def transcribe(file: str, output: str):
 # endregion: Commands
 
 if __name__ == "__main__":
-    cli()
+    consume()

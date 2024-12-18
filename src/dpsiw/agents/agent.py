@@ -3,7 +3,7 @@ import logging
 from dpsiw.messages.message import Message
 from dpsiw.services.mgdatabase import EventsRepository
 from dpsiw.services.servicecontainer import get_service_container_instance
-from dpsiw.services.settings import Settings, get_settings_instance
+from dpsiw.services.settingsservice import SettingsService, get_settings_instance
 
 
 class Agent:
@@ -14,7 +14,7 @@ class Agent:
     def __init__(self) -> None:
         self.message: Message = None
         self.service_container = get_service_container_instance()
-        self.settings: Settings = get_settings_instance()
+        self.settings: SettingsService = get_settings_instance()
         self.events_repository = EventsRepository()
 
     def log_workflow(self, level: str = 'INFO', pid: str = '', message: str = '', status: str = '') -> None:

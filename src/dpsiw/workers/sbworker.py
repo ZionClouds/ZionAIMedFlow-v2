@@ -9,7 +9,7 @@ from pydantic_core import from_json
 from dpsiw.agents import *
 from dpsiw.messages.message import Message
 from azure.servicebus.aio import ServiceBusClient
-from dpsiw.services.settings import get_settings_instance
+from dpsiw.services.settingsservice import get_settings_instance
 from azure.identity.aio import DefaultAzureCredential
 
 settings = get_settings_instance()
@@ -18,10 +18,15 @@ settings = get_settings_instance()
 class WorkerSB:
     def __init__(self, t_id: str):
         self.t_id = t_id
-        credential = DefaultAzureCredential()
         # self.client = ServiceBusClient.from_connection_string(
         #     settings.sb_connection_string)
-        self.client = ServiceBusClient(settings.sb_connection_string, credential)
+        if settings.is_dev:
+            self.client = ServiceBusClient.from_connection_string(
+                settings.sb_connection_string)
+        else:
+            credential = DefaultAzureCredential()
+            self.client = ServiceBusClient(
+                settings.sb_full_ns, credential)
 
     async def process(self):
         while True:

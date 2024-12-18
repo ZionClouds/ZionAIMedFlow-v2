@@ -1,4 +1,4 @@
-from .settings import *
+from .settingsservice import *
 from .azurequeue import *
 from .azuretable import *
 from .mockpysiciandata import *
@@ -8,3 +8,4 @@ from .azurespeech import *
 from .servicecontainer import *
 from .llmservice import *
 from .mgdatabase import *
+from .llmocrservice import *

@@ -3,42 +3,17 @@ from datetime import datetime, timezone
 import uuid
 
 import click
-from openai import AzureOpenAI
-from azure.identity import DefaultAzureCredential, get_bearer_token_provider
 from dpsiw.constants import constants
 from dpsiw.exceptions import CompletedException, DeadLetteredException
 from dpsiw.services.azureblob import AzureBlobContainer, get_blob_name, get_file_name_and_extension
 from dpsiw.services.azurespeech import AzureSTT, TranscribeOpts, Transcriber
 from dpsiw.services.fileservices import delete_file, read_text_file
-from dpsiw.services.llmservice import LLMService
+from dpsiw.services.llmservice import LLMService, get_aoai_client_instance
 from dpsiw.services.mgdatabase import MongoDBService, TranscriptionsRepository
-from dpsiw.services.settings import Settings, get_settings_instance
+from dpsiw.services.settingsservice import SettingsService, get_settings_instance
 from dpsiw.tools.gpttool import GPTMessage
-
-
-
 from .agent import Agent
 from dpsiw.messages.message import Message, LLMOpts
-
-settings = get_settings_instance()
-
-aoaiclient = None
-
-
-def get_aoai_client_instance():
-    """
-    Get the Azure OpenAI client instance
-    """
-    global aoaiclient
-    if aoaiclient is None:
-        token_provider = get_bearer_token_provider(
-            DefaultAzureCredential(), "https://cognitiveservices.azure.com/.default"
-        )
-        aoaiclient = AzureOpenAI(azure_endpoint=settings.endpoint,
-                                 azure_ad_token_provider=token_provider,
-                                 #api_key=settings.api_key,
-                                 api_version=settings.version)
-    return aoaiclient
 
 
 class MedicalNotesAgent(Agent):
@@ -49,12 +24,13 @@ class MedicalNotesAgent(Agent):
         self.specialty: str = "GP"
         self.system_prompt: str = ""
         self.medical_notes: str = ""
+        # Agents should know where to get the blobs from
         self.blob_container = AzureBlobContainer(
             constants.MEDICAL_NOTES_BLOB_CONTAINER)
         self.blob_name: str = None
         self.file_name: str = None
         self.file_ext: str = None
-        self.settings: Settings = get_settings_instance()
+        self.settings: SettingsService = get_settings_instance()
         self.physicians_repository = MongoDBService(
             collection_name=constants.COLLECTION_PHYSICIANS)
         self.log_transcription = TranscriptionsRepository()
@@ -155,8 +131,7 @@ class MedicalNotesAgent(Agent):
                 file_path=file_path)
             # tts: Transcriber = AzureSTT(
             #     self.settings.speech_key, self.settings.speech_region)
-            tts: Transcriber = AzureSTT(
-                self.settings.azSpeechResourceId, self.settings.speech_region)
+            tts: Transcriber = AzureSTT()
             transcribed_file = tts.transcribe(opts=opts)
             self.transcript_text = read_text_file(transcribed_file)
 
