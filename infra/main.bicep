@@ -399,7 +399,7 @@ module acaBackEnd 'app/aca.bicep' = {
         value: managedIdentity.outputs.managedIdentityClientId
       }
       {
-        name: 'STORAGE_CONNECTION_STRING'
+        name: 'STORAGE_URL'
         value: storage.outputs.storageEndpointBlob
       }
       {

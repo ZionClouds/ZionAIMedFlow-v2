@@ -12,16 +12,20 @@ mg_client = None
 
 
 def mogo_getConnectionStr():
-    listConnectionStringUrl = settings.mongo_listconnectionstringurl
-    token_provider = get_bearer_token_provider(
-            DefaultAzureCredential(), "https://management.azure.com/.default"
-        )
-    session = requests.Session()
-    token = token_provider()
+    conn_str: str = ''
+    if settings.is_dev:
+        conn_str = settings.mongo_connection_string
+    else:
+        listConnectionStringUrl = settings.mongo_listconnectionstringurl
+        token_provider = get_bearer_token_provider(
+                DefaultAzureCredential(), "https://management.azure.com/.default"
+            )
+        session = requests.Session()
+        token = token_provider()
 
-    response = session.post(listConnectionStringUrl, headers={"Authorization": "Bearer {}".format(token)})
-    keys_dict = response.json()
-    conn_str = keys_dict["connectionStrings"][0]["connectionString"]
+        response = session.post(listConnectionStringUrl, headers={"Authorization": "Bearer {}".format(token)})
+        keys_dict = response.json()
+        conn_str = keys_dict["connectionStrings"][0]["connectionString"]
 
     # Connect to Azure Cosmos DB for MongoDB
     client = MongoClient(conn_str)
