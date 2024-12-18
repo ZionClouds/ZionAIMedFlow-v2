@@ -23,9 +23,9 @@ class Settings:
         self._mongo_connection_string = os.getenv("MONGO_CONNECTION_STRING")
         # endregion: Mongo
 
-        if not bool(self.blob_connection_string) or not bool(self.mongo_listconnectionstringurl):
+        if not bool(self._storage_url) or not bool(self._storage_connection_string) or not bool(self._mongo_listconnectionstringurl):
             # os exist
-            logging.error("Some or all missing environment variables STORAGE_CONNECTION_STRING, AZURE_COSMOS_LISTCONNECTIONSTRINGURL")
+            logging.error("Some or all missing environment variables STORAGE_URL, AZURE_COSMOS_LISTCONNECTIONSTRINGURL")
             exit(1)
 
     @property
