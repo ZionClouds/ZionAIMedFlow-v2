@@ -1,8 +1,8 @@
 import unittest
 from unittest.mock import Mock, patch
 from datetime import datetime, timezone
-from azurefunctions import function_app
-from azurefunctions.pgdatabase import BlobInfo
+from src.azurefunctions.ocrextractinfo import function_app
+from src.azurefunctions.ocrextractinfo.pgdatabase import BlobInfo
 
 class TestFunctionApp(unittest.TestCase):
     @patch("azurefunctions.function_app.send_queue_message")
