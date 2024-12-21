@@ -4,7 +4,7 @@ import logging
 
 import azure.functions as func
 from src.azurefunctions.mymdnotes.mgdatabase import EventsRepository
-from models import *
+from src.azurefunctions.mymdnotes.models import *
 from azure.servicebus.aio import ServiceBusClient
 from azure.servicebus import ServiceBusMessage
 from dotenv import load_dotenv
