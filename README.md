@@ -20,6 +20,11 @@ name: Zion DataFusion RAG- A RAG Copilot powered by Azure AI Studio and Azure Op
 description: Develop, assess, and deploy a RAG-based copilot that answers customer inquiries with responses grounded in user knowledge and customer data.
 ---
 
+<a href="https://codeclimate.com/github/ZionClouds/ZionAIMedFlow-v2" target="_blank">
+  <img src="https://img.shields.io/badge/maintainability-C-9933FF" alt="Code Climate">
+</a>
+
+
 # ZionAI MedFlow: Streamlining Healthcare with Intelligent Automation
 
 Transform your medical practice with Zion MedFlow GenAI, an advanced workflow automation solution designed to make your clinic more efficient and patient-centric. This powerful system seamlessly integrates with your existing tools and processes to intelligently manage, process, and analyze critical patient data in real-time.
@@ -32,9 +37,6 @@ Need to update patient details or adjust workflows on the fly? The Metadata Edit
 
 Zion MedFlow GenAI is simple to implement and customize. Our development-friendly environment makes setup a breeze—just clone the repository, configure your settings, and run the solution in Visual Studio Code. Your clinic will be up and running with intelligent workflow automation in no time.
 
-<a href="https://codeclimate.com/github/ZionClouds/ZionAIMedFlow-v2" target="_blank">
-  <img src="https://img.shields.io/badge/maintainability-C-9933FF" alt="Code Climate">
-</a>
 
 
 ### Architecture Diagram
