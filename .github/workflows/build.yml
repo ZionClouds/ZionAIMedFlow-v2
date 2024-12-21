@@ -31,7 +31,7 @@ jobs:
         env:
           PYTHONPATH: src  # Add src to PYTHONPATH
         run: |
-          pytest tests/ --junitxml=test-results.xml
+          pytest tests/ --cov=src --cov-report=xml --junitxml=test-results.xml
         continue-on-error: true  # Continue even if this step fails
 
       # Step 5: Upload test results (optional)
@@ -42,11 +42,15 @@ jobs:
           path: test-results.xml
 
       # Step 6: Run SonarQube Analysis
-      - name: SonarQube Scan
+      - name: Run SonarQube Analysis
         uses: sonarsource/sonarqube-scan-action@master
         env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+            SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+            SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        with:
+            args: >
+                -Dsonar.python.coverage.reportPaths=coverage.xml
+
 
       # Optional: Quality Gate Check
       # Uncomment this section if you want the job to fail when the SonarQube Quality Gate fails

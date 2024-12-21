@@ -13,3 +13,4 @@ aiohttp
 pytest
 pytest-mock
 psycopg2>=2.9.6
+pytest-cov
