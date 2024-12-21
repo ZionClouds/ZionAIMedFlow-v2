@@ -1,3 +1,5 @@
+import unittest  # Import unittest for test cases
+from selenium.webdriver.common.by import By  # Import By for locating elements
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from selenium import webdriver
@@ -13,8 +15,11 @@ class TestPDFApprover(unittest.TestCase):
 
     def test_upload_button_exists(self):
         self.driver.get("http://localhost:3000")  # Replace with your app's URL
-        upload_button = self.driver.find_element(By.ID, "upload-button")
+        upload_button = self.driver.find_element(By.ID, "upload-button")  # Use By.ID to locate the element
         self.assertIsNotNone(upload_button)
 
     def tearDown(self):
         self.driver.quit()
+
+if __name__ == "__main__":
+    unittest.main()
