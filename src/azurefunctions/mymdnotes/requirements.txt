@@ -10,3 +10,5 @@ pymongo
 pydantic
 azure-servicebus
 aiohttp
+pytest
+pytest-mock
