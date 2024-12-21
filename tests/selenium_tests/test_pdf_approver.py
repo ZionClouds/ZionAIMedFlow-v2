@@ -1,7 +1,10 @@
-import unittest  # Import unittest for test cases
-from selenium.webdriver.common.by import By  # Import By for locating elements
+import unittest
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 from selenium import webdriver
 from webdriver_manager.chrome import ChromeDriverManager
 
@@ -14,8 +17,9 @@ class TestPDFApprover(unittest.TestCase):
         self.driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
 
     def test_upload_button_exists(self):
-        self.driver.get("http://localhost:5173")  # Replace with your app's URL
-        upload_button = self.driver.find_element(By.ID, "upload-button")  # Use By.ID to locate the element
+        self.driver.get("http://localhost:5173")  # Ensure this URL matches your running server
+        wait = WebDriverWait(self.driver, 10)
+        upload_button = wait.until(EC.presence_of_element_located((By.ID, "upload-button")))
         self.assertIsNotNone(upload_button)
 
     def tearDown(self):
