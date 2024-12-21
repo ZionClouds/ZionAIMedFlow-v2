@@ -46,7 +46,7 @@ jobs:
         working-directory: src/frontends/pdfapprover  # Adjust to correct path
         run: |
           npm install
-          npm run dev &
+          npm run dev -- --host&
           sleep 30  # Wait for the server to start
   
       - name: Run Selenium Tests
