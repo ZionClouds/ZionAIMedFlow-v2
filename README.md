@@ -24,7 +24,9 @@ description: Develop, assess, and deploy a RAG-based copilot that answers custom
   <img src="https://img.shields.io/badge/maintainability-C-9933FF" alt="Code Climate">
 </a>
 
-[![Quality Gate Status](http://20.127.153.94:9000/api/project_badges/measure?project=ZionAIMedFlow-v2&metric=alert_status&token=sqb_91198f813c363877e307ae1350bf8f54a6355337)](http://20.127.153.94:9000/dashboard?id=ZionAIMedFlow-v2)
+<a href="https://codeclimate.com/github/ZionClouds/ZionAIMedFlow-v2" target="_blank">
+  <img src="https://img.shields.io/badge/maintainability-C-9933FF" alt="Code Climate">
+</a>
 
 # ZionAI MedFlow: Streamlining Healthcare with Intelligent Automation
 
