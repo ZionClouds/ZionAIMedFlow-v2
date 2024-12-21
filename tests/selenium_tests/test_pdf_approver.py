@@ -14,7 +14,7 @@ class TestPDFApprover(unittest.TestCase):
         self.driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
 
     def test_upload_button_exists(self):
-        self.driver.get("http://localhost:3000")  # Replace with your app's URL
+        self.driver.get("http://localhost:5173")  # Replace with your app's URL
         upload_button = self.driver.find_element(By.ID, "upload-button")  # Use By.ID to locate the element
         self.assertIsNotNone(upload_button)
 
