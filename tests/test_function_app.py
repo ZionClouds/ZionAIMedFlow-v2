@@ -11,7 +11,7 @@ class TestFunctionApp(unittest.TestCase):
         # Mock InputStream
         myblob = Mock()
         myblob.name = "testfile.txt"
-        myblob.uri = "http://test/bloburi"
+        myblob.uri = "https://test/bloburi"
         myblob.length = 1024
 
         # Call the function
@@ -23,7 +23,7 @@ class TestFunctionApp(unittest.TestCase):
             id="1234",
             job_type="extract",
             name="testfile.txt",
-            uri="http://test/bloburi",
+            uri="https://test/bloburi",
             status="pending",
             created_on=datetime.now(timezone.utc).isoformat(),
         )
