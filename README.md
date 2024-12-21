@@ -28,6 +28,10 @@ description: Develop, assess, and deploy a RAG-based copilot that answers custom
   <img src="http://20.127.153.94:9000/api/project_badges/measure?project=ZionAIMedFlow-v2&metric=alert_status&token=sqb_91198f813c363877e307ae1350bf8f54a6355337" alt="Quality Gate Status">
 </a>
 
+<a href="http://20.127.153.94:9000/dashboard?id=ZionAIMedFlow-v2">
+  <img src="http://20.127.153.94:9000/api/project_badges/measure?project=ZionAIMedFlow-v2&metric=ncloc&token=sqb_91198f813c363877e307ae1350bf8f54a6355337" alt="Lines of Code">
+</a>
+
 # ZionAI MedFlow: Streamlining Healthcare with Intelligent Automation
 
 Transform your medical practice with Zion MedFlow GenAI, an advanced workflow automation solution designed to make your clinic more efficient and patient-centric. This powerful system seamlessly integrates with your existing tools and processes to intelligently manage, process, and analyze critical patient data in real-time.
