@@ -6,7 +6,7 @@ import uuid
 from azure.storage.queue import QueueClient, QueueMessage, BinaryBase64EncodePolicy
 from dotenv import load_dotenv
 
-from pgdatabase import BlobInfo
+from src.azurefunctions.ocrextractinfo.pgdatabase import BlobInfo
 
 
 def send_queue_message(blob_info: BlobInfo):
