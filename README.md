@@ -32,6 +32,11 @@ Need to update patient details or adjust workflows on the fly? The Metadata Edit
 
 Zion MedFlow GenAI is simple to implement and customize. Our development-friendly environment makes setup a breeze—just clone the repository, configure your settings, and run the solution in Visual Studio Code. Your clinic will be up and running with intelligent workflow automation in no time.
 
+<a href="https://codeclimate.com/github/ZionClouds/ZionAIMedFlow" target="_blank">
+  <img src="https://img.shields.io/badge/maintainability-C-9933FF" alt="Code Climate">
+</a>
+
+
 ### Architecture Diagram
 
 <p align="center">
