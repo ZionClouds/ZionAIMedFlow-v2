@@ -26,9 +26,7 @@ description: Develop, assess, and deploy a RAG-based copilot that answers custom
 
 [![Quality Gate Status](http://20.127.153.94:9000/api/project_badges/measure?project=ZionAIMedFlow-v2&metric=alert_status&token=sqb_41e57564b8a1e1ac0f8908725bd41821596fb2e4)](http://20.127.153.94:9000/dashboard?id=ZionAIMedFlow-v2)
 
-<a href="http://20.127.153.94:9000/dashboard?id=ZionAIMedFlow-v2">
-  <img src="http://20.127.153.94:9000/api/project_badges/measure?project=ZionAIMedFlow-v2&metric=ncloc&token=sqb_91198f813c363877e307ae1350bf8f54a6355337" alt="Lines of Code">
-</a>
+[![Lines of Code](http://20.127.153.94:9000/api/project_badges/measure?project=ZionAIMedFlow-v2&metric=ncloc&token=sqb_41e57564b8a1e1ac0f8908725bd41821596fb2e4)](http://20.127.153.94:9000/dashboard?id=ZionAIMedFlow-v2)
 
 
 # ZionAI MedFlow: Streamlining Healthcare with Intelligent Automation
