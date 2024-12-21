@@ -5,8 +5,8 @@ import uuid
 import azure.functions as func
 from datetime import datetime, timezone
 
-from azurequeue import send_queue_message
-from pgdatabase import BlobInfo, db_insert
+from azurefunctions.ocrextractinfo.azurequeue import send_queue_message
+from azurefunctions.ocrextractinfo.pgdatabase import BlobInfo, db_insert
 
 app = func.FunctionApp()
 
