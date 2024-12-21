@@ -1,12 +1,12 @@
 import unittest
 from unittest.mock import Mock, patch
 from datetime import datetime, timezone
-from src.azurefunctions.ocrextractinfo import function_app
+from src.azurefunctions.ocrextractinfo.function_app import StorageTrigger, queue_trigger
 from src.azurefunctions.ocrextractinfo.pgdatabase import BlobInfo
 
 class TestFunctionApp(unittest.TestCase):
-    @patch("azurefunctions.function_app.send_queue_message")
-    @patch("azurefunctions.function_app.db_insert")
+    @patch("src.azurefunctions.ocrextractinfo.function_app.send_queue_message")
+    @patch("src.azurefunctions.ocrextractinfo.function_app.db_insert")
     def test_storage_trigger_extract(self, mock_db_insert, mock_send_queue_message):
         # Mock InputStream
         myblob = Mock()
@@ -15,8 +15,8 @@ class TestFunctionApp(unittest.TestCase):
         myblob.length = 1024
 
         # Call the function
-        with patch("azurefunctions.function_app.uuid.uuid4", return_value="1234"):
-            function_app.StorageTrigger(myblob)
+        with patch("src.azurefunctions.ocrextractinfo.function_app.uuid.uuid4", return_value="1234"):
+            StorageTrigger(myblob)
 
         # Validate BlobInfo
         expected_blob_info = BlobInfo(
@@ -32,7 +32,7 @@ class TestFunctionApp(unittest.TestCase):
         mock_send_queue_message.assert_called_once_with(expected_blob_info)
         mock_db_insert.assert_called_once_with(expected_blob_info)
 
-    @patch("azurefunctions.function_app.BlobInfo.from_json")
+    @patch("src.azurefunctions.ocrextractinfo.function_app.BlobInfo.from_json")
     def test_queue_trigger(self, mock_from_json):
         # Mock QueueMessage
         azqueue = Mock()
@@ -43,7 +43,7 @@ class TestFunctionApp(unittest.TestCase):
         mock_from_json.return_value = blob_info
 
         # Call the function
-        function_app.queue_trigger(azqueue)
+        queue_trigger(azqueue)
 
         # Assertions
         azqueue.get_body.assert_called_once()
