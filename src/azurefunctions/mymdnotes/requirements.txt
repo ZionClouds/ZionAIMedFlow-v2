@@ -12,3 +12,4 @@ azure-servicebus
 aiohttp
 pytest
 pytest-mock
+psycopg2>=2.9.6
