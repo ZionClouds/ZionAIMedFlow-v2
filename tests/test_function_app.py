@@ -8,7 +8,7 @@ class TestFunctionApp(unittest.TestCase):
     @patch("src.azurefunctions.ocrextractinfo.function_app.datetime")
     @patch("src.azurefunctions.ocrextractinfo.function_app.send_queue_message")
     @patch("src.azurefunctions.ocrextractinfo.function_app.db_insert")
-    def test_storage_trigger_extract(self, mock_db_insert, mock_send_queue_message, mock_datetime):
+    def test_storage_trigger_transcribe(self, mock_db_insert, mock_send_queue_message, mock_datetime):
         # Mock datetime
         mock_datetime.now.return_value = datetime(2024, 12, 21, 17, 17, 20, 713583, tzinfo=timezone.utc)
 
@@ -25,7 +25,7 @@ class TestFunctionApp(unittest.TestCase):
         # Validate BlobInfo
         expected_blob_info = BlobInfo(
             id="1234",
-            type="extract",  # Ensure this matches your StorageTrigger
+            type="transcribe",  # Updated to match the function's behavior
             blobName="testfile.txt",
             blobURI="https://test/bloburi",
             status="pending",
@@ -35,7 +35,7 @@ class TestFunctionApp(unittest.TestCase):
         # Assertions
         mock_send_queue_message.assert_called_once_with(expected_blob_info)
         mock_db_insert.assert_called_once_with(expected_blob_info)
-        
+
     @patch("src.azurefunctions.ocrextractinfo.function_app.BlobInfo.from_json")
     def test_queue_trigger(self, mock_from_json):
         # Mock QueueMessage
