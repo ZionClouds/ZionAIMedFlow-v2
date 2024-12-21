@@ -21,11 +21,11 @@ class TestFunctionApp(unittest.TestCase):
         # Validate BlobInfo
         expected_blob_info = BlobInfo(
             id="1234",
-            job_type="extract",
-            name="testfile.txt",
-            uri="https://test/bloburi",
+            type="extract",  # Updated to match the `type` parameter
+            blobName="testfile.txt",
+            blobURI="https://test/bloburi",
             status="pending",
-            created_on=datetime.now(timezone.utc).isoformat(),
+            ts=datetime.now(timezone.utc).isoformat(),
         )
 
         # Assertions
@@ -36,10 +36,17 @@ class TestFunctionApp(unittest.TestCase):
     def test_queue_trigger(self, mock_from_json):
         # Mock QueueMessage
         azqueue = Mock()
-        azqueue.get_body.return_value = b'{"id": "1234", "job_type": "extract"}'
+        azqueue.get_body.return_value = b'{"id": "1234", "type": "extract", "blobName": "testfile.txt", "blobURI": "https://test/bloburi", "status": "pending", "ts": "2024-12-21T12:00:00Z"}'
 
         # Mock BlobInfo
-        blob_info = Mock()
+        blob_info = BlobInfo(
+            id="1234",
+            type="extract",
+            blobName="testfile.txt",
+            blobURI="https://test/bloburi",
+            status="pending",
+            ts="2024-12-21T12:00:00Z",
+        )
         mock_from_json.return_value = blob_info
 
         # Call the function
@@ -47,7 +54,14 @@ class TestFunctionApp(unittest.TestCase):
 
         # Assertions
         azqueue.get_body.assert_called_once()
-        mock_from_json.assert_called_once_with({"id": "1234", "job_type": "extract"})
+        mock_from_json.assert_called_once_with({
+            "id": "1234",
+            "type": "extract",
+            "blobName": "testfile.txt",
+            "blobURI": "https://test/bloburi",
+            "status": "pending",
+            "ts": "2024-12-21T12:00:00Z"
+        })
 
 if __name__ == "__main__":
     unittest.main()
