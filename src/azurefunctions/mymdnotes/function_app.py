@@ -3,7 +3,7 @@ import uuid
 import logging
 
 import azure.functions as func
-from mgdatabase import EventsRepository
+from src.azurefunctions.mymdnotes.mgdatabase import EventsRepository
 from models import *
 from azure.servicebus.aio import ServiceBusClient
 from azure.servicebus import ServiceBusMessage
