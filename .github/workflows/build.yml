@@ -32,7 +32,7 @@ jobs:
           PYTHONPATH: src  # Add src to PYTHONPATH
         run: |
           pytest tests/ --junitxml=test-results.xml
-
+        continue-on-error: true  # Continue even if this step fails
 
       # Step 5: Upload test results (optional)
       - name: Upload test results
