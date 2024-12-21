@@ -24,6 +24,8 @@ description: Develop, assess, and deploy a RAG-based copilot that answers custom
   <img src="https://img.shields.io/badge/maintainability-C-9933FF" alt="Code Climate">
 </a>
 
+[![Security Rating](http://20.127.153.94:9000/api/project_badges/measure?project=ZionAIMedFlow-v2&metric=security_rating&token=sqb_41e57564b8a1e1ac0f8908725bd41821596fb2e4)](http://20.127.153.94:9000/dashboard?id=ZionAIMedFlow-v2)
+
 [![Quality Gate Status](http://20.127.153.94:9000/api/project_badges/measure?project=ZionAIMedFlow-v2&metric=alert_status&token=sqb_41e57564b8a1e1ac0f8908725bd41821596fb2e4)](http://20.127.153.94:9000/dashboard?id=ZionAIMedFlow-v2)
 
 [![Lines of Code](http://20.127.153.94:9000/api/project_badges/measure?project=ZionAIMedFlow-v2&metric=ncloc&token=sqb_41e57564b8a1e1ac0f8908725bd41821596fb2e4)](http://20.127.153.94:9000/dashboard?id=ZionAIMedFlow-v2)
