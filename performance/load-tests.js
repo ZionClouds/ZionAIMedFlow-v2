@@ -76,15 +76,14 @@ const customMetrics = {
 
 // Results reporting
 export function handleSummary(data) {
-  const metrics = {
-    ...customMetrics,
+  const metrics = Object.assign({}, customMetrics, {
     timestamp: new Date().toISOString(),
     duration: '30s',
     total_requests: 1000,
     successful_requests: 998,
     failed_requests: 2,
     average_rps: 33.3
-  };
+  });
 
   return {
     'stdout': JSON.stringify(metrics, null, 2),
