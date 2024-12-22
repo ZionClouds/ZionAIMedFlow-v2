@@ -62,19 +62,26 @@ jobs:
       #     format: 'sarif'
       #     output: 'trivy-results-config.sarif'
 
-  build-and-test:
-    name: Build and Test
+  code-quality:
+    name: Code Quality & Tests
     runs-on: ubuntu-latest
     steps:
-      # Step 1: Checkout the repository
-      - name: Checkout code
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
       # Step 2: Set up Python environment
       - name: Set up Python 3.11
         uses: actions/setup-python@v2
         with:
-          python-version: 3.11
+          python-version: ${{env.PYTHON_VERSION}}
+          cache: 'pip'
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
 
       # Step 3: Install dependencies
       - name: Install dependencies
@@ -82,6 +89,20 @@ jobs:
           python -m pip install --upgrade pip
           pip install selenium webdriver-manager
           pip install -r src/azurefunctions/mymdnotes/requirements.txt
+          npm ci --prefix src/frontends/pdfapprover
+      # pip install -r requirements-dev.txt
+
+      - name: Code Style Check
+        run: |
+          black --check .
+          isort --check-only .
+          flake8 .
+          npm run lint --prefix src/frontends/pdfapprover
+
+      - name: Type Check
+        run: |
+          mypy src/
+          npm run type-check --prefix src/frontends/pdfapprover
 
       # Step 4: Run tests with pytest
       - name: Run Unit Tests
@@ -101,9 +122,9 @@ jobs:
       - name: Start Frontend
         working-directory: src/frontends/pdfapprover  # Adjust to correct path
         run: |
-          npm install
           npm run dev -- --host&
           sleep 10  # Wait for the server to start
+      # npm install
   
       - name: Run Selenium Tests
         continue-on-error: true  # Continue even if this step fails
