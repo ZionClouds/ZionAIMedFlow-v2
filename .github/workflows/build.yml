@@ -181,8 +181,8 @@ jobs:
       env:
         TEST_RESULT: 1  # Control test outcome
       run: |
-        chmod +x ./scripts/smoke-tests.sh
-        ./scripts/smoke-tests.sh ${{ steps.deploy.outputs.url }}
+        chmod +x /scripts/smoke-tests.sh
+        /scripts/smoke-tests.sh ${{ steps.deploy.outputs.url }}
   
   performance-test:
     name: Performance Testing
