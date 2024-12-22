@@ -9,3 +9,4 @@ azure-identity
 azure-storage-queue
 azurefunctions-extensions-bindings-blob
 psycopg2-binary
+azure-data-tables
