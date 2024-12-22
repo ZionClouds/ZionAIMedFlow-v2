@@ -63,7 +63,8 @@ jobs:
       #     output: 'trivy-results-config.sarif'
 
   code-quality:
-    name: Code Quality & Tests
+    name: Code Quality
+    needs: security-scan
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -105,7 +106,12 @@ jobs:
         run: |
           mypy src/
           npm run type-check --prefix src/frontends/pdfapprover
-
+    
+  unit-test:
+    name: Unit Testing
+    needs: code-quality
+    runs-on: ubuntu-latest
+    steps:
       # Step 4: Run tests with pytest
       - name: Run Unit Tests
         env:
@@ -126,22 +132,32 @@ jobs:
         run: |
           npm run dev -- --host&
           sleep 10  # Wait for the server to start
-      # npm install
-  
+        # npm install
+    
+  selenium-test:
+    name: Selenium Test Automation
+    needs: unit-test
+    runs-on: ubuntu-latest
+    steps:
       - name: Run Selenium Tests
         continue-on-error: true  # Continue even if this step fails
         run: |
           pytest tests/selenium_tests/
-
-      # Step 6: Run SonarQube Analysis
-      - name: Run SonarQube Analysis
-        uses: sonarsource/sonarqube-scan-action@master
-        env:
-            SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-            SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-        with:
-            args: >
-                -Dsonar.python.coverage.reportPaths=coverage.xml
+    
+  sonarqube-analysis:
+    name: SonarQube Analysis
+    needs: selenium-test
+    runs-on: ubuntu-latest
+    steps:
+    # Step 6: Run SonarQube Analysis
+    - name: Run SonarQube Analysis
+      uses: sonarsource/sonarqube-scan-action@master
+      env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+      with:
+          args: >
+              -Dsonar.python.coverage.reportPaths=coverage.xml
       
       # Optional: Quality Gate Check
       # Uncomment this section if you want the job to fail when the SonarQube Quality Gate fails
@@ -149,35 +165,39 @@ jobs:
       #   uses: sonarsource/sonarqube-quality-gate-action@master
       #   env:
       #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-
-
-      # Soaham - Testing with Smoke Test File 
-      - name: Run Smoke Tests
-        env:
-          TEST_RESULT: 1  # Control test outcome
-        run: |
-          chmod +x ./scripts/smoke-tests.sh
-          ./scripts/smoke-tests.sh ${{ steps.deploy.outputs.url }}
   
-  # performance-test:
-  #   name: Performance Testing
-  #   needs: [build-and-test]
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v3
+  smoke-test:
+    name: Smoke Testing
+    needs: sonarqube-analysis
+    runs-on: ubuntu-latest
+    steps:
+      # Soaham - Testing with Smoke Test File 
+    - name: Run Smoke Tests
+      env:
+        TEST_RESULT: 1  # Control test outcome
+      run: |
+        chmod +x ./scripts/smoke-tests.sh
+        ./scripts/smoke-tests.sh ${{ steps.deploy.outputs.url }}
+  
+  performance-test:
+    name: Performance Testing
+    needs: smoke-test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
 
-  #     - name: Run k6 Load Tests
-  #       uses: grafana/k6-action@v0.2.0
-  #       env:
-  #         TARGET_URL: ${{ needs.deploy-dev.outputs.url }}
-  #       with:
-  #         filename: performance/load-tests.js
-  #         flags: --vus 10 --duration 30s
+      - name: Run k6 Load Tests
+        uses: grafana/k6-action@v0.2.0
+        env:
+          TARGET_URL: ${{ needs.deploy-dev.outputs.url }}
+        with:
+          filename: performance/load-tests.js
+          flags: --vus 10 --duration 30s
 
-  #     - name: Upload Performance Results
-  #       if: always()
-  #       uses: actions/upload-artifact@v3
-  #       with:
-  #         name: performance-results
-  #         path: performance/results.json
+      - name: Upload Performance Results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: performance-results
+          path: performance/results.json
       
