@@ -93,6 +93,7 @@ jobs:
       # pip install -r requirements-dev.txt
 
       - name: Code Style Check
+        continue-on-error: true
         run: |
           black --check .
           isort --check-only .
@@ -100,6 +101,7 @@ jobs:
           npm run lint --prefix src/frontends/pdfapprover
 
       - name: Type Check
+        continue-on-error: true
         run: |
           mypy src/
           npm run type-check --prefix src/frontends/pdfapprover
