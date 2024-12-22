@@ -63,7 +63,15 @@ jobs:
         with:
             args: >
                 -Dsonar.python.coverage.reportPaths=coverage.xml
-                
+      
+      # Optional: Quality Gate Check
+      # Uncomment this section if you want the job to fail when the SonarQube Quality Gate fails
+      # - name: SonarQube Quality Gate
+      #   uses: sonarsource/sonarqube-quality-gate-action@master
+      #   env:
+      #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+
       # Soaham - Testing with Smoke Test File 
       - name: Run Smoke Tests
         env:
@@ -71,10 +79,26 @@ jobs:
         run: |
           chmod +x ./scripts/smoke-tests.sh
           ./scripts/smoke-tests.sh ${{ steps.deploy.outputs.url }}
+  
+  performance-test:
+    name: Performance Testing
+    needs: [build-and-test]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
 
-      # Optional: Quality Gate Check
-      # Uncomment this section if you want the job to fail when the SonarQube Quality Gate fails
-      # - name: SonarQube Quality Gate
-      #   uses: sonarsource/sonarqube-quality-gate-action@master
-      #   env:
-      #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      - name: Run k6 Load Tests
+        uses: grafana/k6-action@v0.2.0
+        env:
+          TARGET_URL: ${{ needs.deploy-dev.outputs.url }}
+        with:
+          filename: performance/load-tests.js
+          flags: --vus 10 --duration 30s
+
+      - name: Upload Performance Results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: performance-results
+          path: performance/results.json
+      
