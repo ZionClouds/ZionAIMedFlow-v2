@@ -1,6 +1,7 @@
 import unittest
 from unittest.mock import AsyncMock, patch, Mock
 import os
+import uuid
 from src.azurefunctions.mymdnotes.function_app import StorageTrigger, send_queue_message
 from src.azurefunctions.mymdnotes.models import Message, MedicalNotesMD
 from src.azurefunctions.mymdnotes.mgdatabase import EventsRepository
@@ -68,6 +69,39 @@ class TestFunctionAppMyMDNotes(unittest.IsolatedAsyncioTestCase):
 
         self.assertIn("could not be parsed", log.output[0])
         mock_send_queue_message.assert_not_called()
+
+    @patch('function_app.ServiceBusClient')
+    @patch('function_app.DefaultAzureCredential')
+    @patch('function_app.func.InputStream')
+    @patch('function_app.logging')
+    @patch('function_app.os')
+    @patch('function_app.uuid')
+    async def test_storage_trigger(self, mock_uuid, mock_os, mock_logging, mock_input_stream, mock_default_credential, mock_service_bus_client):
+        # Mock the input stream
+        mock_input_stream.name = 'provider-12345-file.txt'
+        mock_input_stream.length = 1024
+
+        # Mock the UUID
+        mock_uuid.uuid4.return_value = uuid.UUID('12345678123456781234567812345678')
+
+        # Mock the os.path functions
+        mock_os.path.basename.return_value = 'provider-12345-file.txt'
+        mock_os.path.splitext.return_value = ('provider-12345-file', '.txt')
+
+        # Mock the ServiceBusClient and sender
+        mock_sender = AsyncMock()
+        mock_service_bus_client.return_value.__aenter__.return_value.get_queue_sender.return_value = mock_sender
+
+        # Call the function
+        await StorageTrigger(mock_input_stream)
+
+        # Assertions
+        mock_logging.info.assert_any_call("Python blob trigger function processed blob"
+                                          "Name: provider-12345-file.txt"
+                                          "Blob Size: 1024 bytes")
+        mock_sender.send_messages.assert_called_once()
+        mock_logging.info.assert_any_call("Message sent to queue: your-queue-name")
+
 
 if __name__ == "__main__":
     unittest.main()
