@@ -181,7 +181,7 @@ jobs:
       env:
         TEST_RESULT: 1  # Control test outcome
       run: |
-        echo pwd
+        pwd
         chmod +x /scripts/smoke-tests.sh
         /scripts/smoke-tests.sh ${{ steps.deploy.outputs.url }}
   
