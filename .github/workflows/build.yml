@@ -182,6 +182,7 @@ jobs:
         TEST_RESULT: 1  # Control test outcome
       run: |
         pwd
+        ls -la
         chmod +x /scripts/smoke-tests.sh
         /scripts/smoke-tests.sh ${{ steps.deploy.outputs.url }}
   
