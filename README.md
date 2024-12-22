@@ -42,6 +42,58 @@ Implementation is straightforward and developer-friendly. Clone the repository, 
 <img src="media/images/architecture-solutionflow.png" alt="Zion AI Med Flow" />
 </p>
 
+## Application Architecture Diagram
+
+```mermaid
+graph LR
+  subgraph DPSI-w System
+    direction LR
+    M(Agent<br>Message):::blue--POST-->Q
+    ST--File<br>Created<br>Event-->W
+    FW(File<br>Watcher):::orange--File<br>Added<br>Event-->Q
+    Q(Queue<br>Storage):::yellow--subscribe-->W
+    W(Message<br>Processing<br>Worker):::orange<--invoke-->TR1(Medical<br>Notes<br>Agent):::orange
+    W<--invoke-->TR2(Sentiment<br>Analysis<br>Agent):::orange
+    W<--invoke-->PG(Product<br>Generation<br>Agent):::orange
+    TR1<--call-->GPT(LLM<br>Service):::orange
+    TR2<--call-->GPT
+    PG<--call-->GPT
+    TR1--save-->ST(Table<br>Storage):::yellow
+    TR2--save-->ST
+    PG--save-->ST
+    TR1-->BL(Blob<br>Storage):::yellow
+    TR2-->BL
+    PG-->BL    
+    W--Logs-->ST
+    TTSM(TTS<br>Message):::blue--POST-->TTSQ(TTS<br>Queue):::yellow
+    TTSQ--subscribe-->TTSW(TTS<br>Message<br>Worker):::orange
+    TTSW<-->ASP(Azure<br>Speech<br>Service):::orange
+    TTSW--File<br>Added-->Q
+    TTSW-->ST
+  end
+  subgraph Monitor
+    AD((Admin user)):::blue<-->MO
+    MO(Admin<br>Console):::red<-->ST
+  end
+  subgraph User Portal
+    direction LR
+    PH((Physician)):::blue<-->UP(User<br>Portal):::red
+    UP<-->ST
+  end
+  subgraph Metadata Editor
+    direction LR
+    ED((Editor)):::blue<-->EC[Editor<br>Console]:::red
+    EC<-->ST
+  end
+
+  classDef blue fill:blue,color:#fff
+  classDef green fill:green,color:black  
+  classDef yellow fill:yellow,color:black  
+  classDef orange fill:orange,color:black
+  classDef red fill:red,color:black
+```
+
+
 # Distributed Processing System For Intelligent Workloads (DPSIw)
 
 ZionAI MedFlow’s Distributed Processing System for Intelligent Workloads (DPSIw) is a scalable and modular application designed to efficiently process and analyze diverse message streams in dynamic healthcare environments. This architecture leverages distributed components to streamline data workflows, ensuring real-time processing and actionable insights while adhering to federal compliance standards.
