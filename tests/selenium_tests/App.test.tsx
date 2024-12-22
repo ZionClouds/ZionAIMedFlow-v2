@@ -4,7 +4,6 @@ import { Builder, By, until, WebDriver } from 'selenium-webdriver';
 import 'chromedriver';
 
 let driver: WebDriver;
-
 beforeAll(async () => {
   driver = await new Builder().forBrowser('chrome').build();
   await driver.get('http://localhost:3000'); // Adjust the URL to your local development server
