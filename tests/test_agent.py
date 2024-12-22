@@ -7,7 +7,6 @@ from src.dpsiw.services.servicecontainer import get_service_container_instance
 from src.dpsiw.services.settingsservice import SettingsService, get_settings_instance
 
 class TestAgent(unittest.TestCase):
-
     @patch('dpsiw.agents.agent.get_service_container_instance')
     @patch('dpsiw.agents.agent.get_settings_instance')
     @patch('dpsiw.agents.agent.EventsRepository')
@@ -15,9 +14,9 @@ class TestAgent(unittest.TestCase):
         self.mock_events_repository = mock_events_repository.return_value
         self.mock_get_settings_instance = mock_get_settings_instance.return_value
         self.mock_get_service_container_instance = mock_get_service_container_instance.return_value
-
         self.agent = Agent()
-
+        print('test')
+        
     def test_log_workflow_info(self):
         self.agent.log_workflow(level='INFO', pid='1234', message='Test message', status='Success')
         self.mock_events_repository.insert.assert_called_once_with('INFO', '1234', 'Test message', 'Success')
