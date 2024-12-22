@@ -47,7 +47,14 @@ jobs:
         run: |
           npm install
           npm run dev -- --host&
-          sleep 30  # Wait for the server to start
+          sleep 10  # Wait for the server to start
+      
+      # Step 6: Run Jest Tests
+      - name: Run Jest Tests
+        working-directory: src/frontends/pdfapprover  # Adjust to correct path
+        run: |
+          npm install
+          npm test
   
       - name: Run Selenium Tests
         continue-on-error: true  # Continue even if this step fails

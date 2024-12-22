@@ -6,7 +6,7 @@ import 'chromedriver';
 let driver: WebDriver;
 beforeAll(async () => {
   driver = await new Builder().forBrowser('chrome').build();
-  await driver.get('http://localhost:3000'); // Adjust the URL to your local development server
+  await driver.get('http://localhost:5173/'); // Adjust the URL to your local development server
 });
 
 afterAll(async () => {
