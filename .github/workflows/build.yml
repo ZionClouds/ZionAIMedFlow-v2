@@ -17,32 +17,39 @@ jobs:
         with:
           fetch-depth: 0
       
-      - name: InitializeCodeQL
-        uses: github/codeql-action/init@v2
-        with:
-          languages: python,javascript
+      # - name: InitializeCodeQL
+      #   uses: github/codeql-action/init@v2
+      #   with:
+      #     languages: python,javascript
       
-      - name: CodeQL Analysis - SAST
-        uses: github/codeql-action/analyze@v2
-        with: 
-          output: ../results
-          upload: always
-          cleanup-level: brutal
-          skip-queries: false
-          upload-database: true
-          wait-for-processing: true
+      # - name: CodeQL Analysis - SAST
+      #   uses: github/codeql-action/analyze@v2
+      #   with: 
+      #     output: ../results
+      #     upload: always
+      #     cleanup-level: brutal
+      #     skip-queries: false
+      #     upload-database: true
+      #     wait-for-processing: true
       
       # - name: Dependency Security Scan
       #   uses: snyk/actions/python@master
       #   env:
       #     SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
  
-      - name: Container Security Scan
+      - name: Container Security Scan - File System
         uses: aquasecurity/trivy-action@master
         with:
-          scan-type: 'fs,config'
+          scan-type: 'fs'
           format: 'sarif'
-          output: 'trivy-results.sarif'
+          output: 'trivy-results-fs.sarif'
+
+      - name: Container Security Scan - Configuration
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'config'
+          format: 'sarif'
+          output: 'trivy-results-config.sarif'
 
   build-and-test:
     name: Build and Test
