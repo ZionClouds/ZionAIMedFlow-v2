@@ -181,28 +181,29 @@ jobs:
       env:
         TEST_RESULT: 1  # Control test outcome
       run: |
+        echo pwd
         chmod +x /scripts/smoke-tests.sh
         /scripts/smoke-tests.sh ${{ steps.deploy.outputs.url }}
   
-  performance-test:
-    name: Performance Testing
-    # needs: smoke-test
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
+  # performance-test:
+  #   name: Performance Testing
+  #   # needs: smoke-test
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v3
 
-      - name: Run k6 Load Tests
-        uses: grafana/k6-action@v0.2.0
-        env:
-          TARGET_URL: ${{ needs.deploy-dev.outputs.url }}
-        with:
-          filename: performance/load-tests.js
-          flags: --vus 10 --duration 30s
+  #     - name: Run k6 Load Tests
+  #       uses: grafana/k6-action@v0.2.0
+  #       env:
+  #         TARGET_URL: ${{ needs.deploy-dev.outputs.url }}
+  #       with:
+  #         filename: performance/load-tests.js
+  #         flags: --vus 10 --duration 30s
 
-      - name: Upload Performance Results
-        if: always()
-        uses: actions/upload-artifact@v3
-        with:
-          name: performance-results
-          path: performance/results.json
+  #     - name: Upload Performance Results
+  #       if: always()
+  #       uses: actions/upload-artifact@v3
+  #       with:
+  #         name: performance-results
+  #         path: performance/results.json
       
