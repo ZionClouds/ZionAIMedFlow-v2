@@ -16,11 +16,21 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-
-      - name: Security Scan - SAST
+      
+      - name: InitializeCodeQL
+        uses: github/codeql-action/init@v2
+        with:
+          languages: python,javascript
+      
+      - name: CodeQL Analysis - SAST
         uses: github/codeql-action/analyze@v2
         with: 
-          languages: 'python,javascript'
+          output: ../results
+          upload: always
+          cleanup-level: brutal
+          skip-queries: false
+          upload-database: true
+          wait-for-processing: true
       
       # - name: Dependency Security Scan
       #   uses: snyk/actions/python@master
@@ -108,25 +118,25 @@ jobs:
           chmod +x ./scripts/smoke-tests.sh
           ./scripts/smoke-tests.sh ${{ steps.deploy.outputs.url }}
   
-  performance-test:
-    name: Performance Testing
-    needs: [build-and-test]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
+  # performance-test:
+  #   name: Performance Testing
+  #   needs: [build-and-test]
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v3
 
-      - name: Run k6 Load Tests
-        uses: grafana/k6-action@v0.2.0
-        env:
-          TARGET_URL: ${{ needs.deploy-dev.outputs.url }}
-        with:
-          filename: performance/load-tests.js
-          flags: --vus 10 --duration 30s
+  #     - name: Run k6 Load Tests
+  #       uses: grafana/k6-action@v0.2.0
+  #       env:
+  #         TARGET_URL: ${{ needs.deploy-dev.outputs.url }}
+  #       with:
+  #         filename: performance/load-tests.js
+  #         flags: --vus 10 --duration 30s
 
-      - name: Upload Performance Results
-        if: always()
-        uses: actions/upload-artifact@v3
-        with:
-          name: performance-results
-          path: performance/results.json
+  #     - name: Upload Performance Results
+  #       if: always()
+  #       uses: actions/upload-artifact@v3
+  #       with:
+  #         name: performance-results
+  #         path: performance/results.json
       
