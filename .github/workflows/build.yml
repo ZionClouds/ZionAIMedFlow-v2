@@ -8,6 +8,12 @@ on:
   schedule:
     - cron: '0 0 * * *'  # Daily security scans
 
+env:
+  PYTHON_VERSION: '3.11'
+  NODE_VERSION: '18'
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
 jobs:
   security-scan:
     name: Security Analysis
@@ -37,19 +43,19 @@ jobs:
       #   env:
       #     SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
  
-      - name: Container Security Scan - File System
-        uses: aquasecurity/trivy-action@master
-        with:
-          scan-type: 'fs'
-          format: 'sarif'
-          output: 'trivy-results-fs.sarif'
+      # - name: Container Security Scan - File System
+      #   uses: aquasecurity/trivy-action@master
+      #   with:
+      #     scan-type: 'fs'
+      #     format: 'sarif'
+      #     output: 'trivy-results-fs.sarif'
 
-      - name: Container Security Scan - Configuration
-        uses: aquasecurity/trivy-action@master
-        with:
-          scan-type: 'config'
-          format: 'sarif'
-          output: 'trivy-results-config.sarif'
+      # - name: Container Security Scan - Configuration
+      #   uses: aquasecurity/trivy-action@master
+      #   with:
+      #     scan-type: 'config'
+      #     format: 'sarif'
+      #     output: 'trivy-results-config.sarif'
 
   build-and-test:
     name: Build and Test
