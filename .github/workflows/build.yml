@@ -177,16 +177,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # Soaham - Testing with Smoke Test File 
-    - name: Run Smoke Tests
-      env:
-        TEST_RESULT: 1  # Control test outcome
-      run: |
-        cd ..
-        pwd
-        ls -la
-        cd src
-        chmod +x ./scripts/smoke-tests.sh
-        ./scripts/smoke-tests.sh ${{ steps.deploy.outputs.url }}
+      - uses: actions/checkout@v3
+      - name: Run Smoke Tests
+        env:
+          TEST_RESULT: 1  # Control test outcome
+        run: |
+          pwd
+          cd ..
+          pwd
+          ls -la
+          cd src
+          chmod +x ./scripts/smoke-tests.sh
+          ./scripts/smoke-tests.sh ${{ steps.deploy.outputs.url }}
   
   # performance-test:
   #   name: Performance Testing
