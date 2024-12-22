@@ -63,7 +63,14 @@ jobs:
         with:
             args: >
                 -Dsonar.python.coverage.reportPaths=coverage.xml
-
+                
+      # Soaham - Testing with Smoke Test File 
+    - name: Run Smoke Tests
+    env:
+    TEST_RESULT: 1  # Control test outcome
+    run: |
+      chmod +x ./scripts/smoke-tests.sh
+      ./scripts/smoke-tests.sh ${{ steps.deploy.outputs.url }}
 
       # Optional: Quality Gate Check
       # Uncomment this section if you want the job to fail when the SonarQube Quality Gate fails
