@@ -1,9 +1,10 @@
 import unittest
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, patch, AsyncMock
 from src.azurefunctions.ocrextractinfo.azurequeue import send_queue_message
 from src.azurefunctions.ocrextractinfo.pgdatabase import BlobInfo
 
 class TestAzureQueue(unittest.TestCase):
+
     @patch("src.azurefunctions.ocrextractinfo.azurequeue.QueueServiceClient")
     def test_send_queue_message_success(self, mock_queue_service_client):
         # Mock the queue client and sender
@@ -30,8 +31,14 @@ class TestAzureQueue(unittest.TestCase):
 
     @patch("src.azurefunctions.ocrextractinfo.azurequeue.QueueServiceClient")
     def test_send_queue_message_failure(self, mock_queue_service_client):
-        # Mock connection to raise an error
-        mock_queue_service_client.from_connection_string.side_effect = Exception("Queue service error")
+        # Mock the queue client and sender
+        mock_queue_client = Mock()
+        mock_sender = Mock()
+        mock_queue_service_client.from_connection_string.return_value = mock_queue_client
+        mock_queue_client.get_queue_client.return_value = mock_sender
+
+        # Simulate an exception when sending the message
+        mock_sender.send_message.side_effect = Exception("Failed to send message")
 
         blob_info = BlobInfo(
             id="1234",
@@ -45,7 +52,11 @@ class TestAzureQueue(unittest.TestCase):
         with self.assertLogs(level="ERROR") as log:
             send_queue_message(blob_info)
 
-        self.assertIn("Error sending message to queue", log.output[0])
+        # Assertions
+        mock_queue_service_client.from_connection_string.assert_called_once()
+        mock_queue_client.get_queue_client.assert_called_once()
+        mock_sender.send_message.assert_called_once_with(blob_info.to_json())
+        self.assertIn("Failed to send message", log.output[0])
 
 if __name__ == "__main__":
     unittest.main()
