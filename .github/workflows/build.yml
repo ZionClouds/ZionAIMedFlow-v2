@@ -128,7 +128,7 @@ jobs:
           path: test-results.xml
 
       - name: Start Frontend
-        working-directory: src/frontends/pdfapprover  # Adjust to correct path
+        working-directory: ../src/frontends/pdfapprover  # Adjust to correct path
         run: |
           npm run dev -- --host&
           sleep 10  # Wait for the server to start
