@@ -25,7 +25,7 @@ export function setup() {
   // Simulate setup data
   return {
     authToken: 'simulated-token',
-    baseUrl: __ENV.TARGET_URL || 'http://test-environment',
+    baseUrl: __ENV.TARGET_URL || 'https://medflow-jagoh3evy7f-cafrontend.victoriouswave-a4fd2c3d.eastus2.azurecontainerapps.io/',
   };
 }
 
