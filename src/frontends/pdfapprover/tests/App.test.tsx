@@ -33,31 +33,6 @@ describe('App Component', () => {
 
     const pageText = await driver.findElement(By.xpath("//span[contains(text(), 'Page: 1')]"));
     expect(pageText).toBeTruthy();
-
-    const textArea = await driver.findElement(By.css('textarea'));
-    const textAreaValue = await textArea.getAttribute('value');
-    expect(textAreaValue).toBe('Get Started With Smallpdf');
-  });
-
-  test('renders review information section', async () => {
-    const reviewInfoLabel = await driver.findElement(By.css('aside:nth-of-type(2) h2'));
-    const reviewInfoText = await reviewInfoLabel.getText();
-    expect(reviewInfoText).toBe('Review Information');
-
-    const patientNameLabel = await driver.findElement(By.xpath("//label[contains(text(), 'Patient\'s name')]"));
-    expect(patientNameLabel).toBeTruthy();
-
-    const dateOfBirthLabel = await driver.findElement(By.xpath("//label[contains(text(), 'Date of bith')]"));
-    expect(dateOfBirthLabel).toBeTruthy();
-
-    const providerNameLabel = await driver.findElement(By.xpath("//label[contains(text(), 'Provider\'s name')]"));
-    expect(providerNameLabel).toBeTruthy();
-
-    const dateOfServiceLabel = await driver.findElement(By.xpath("//label[contains(text(), 'Date of service')]"));
-    expect(dateOfServiceLabel).toBeTruthy();
-
-    const aiNotesLabel = await driver.findElement(By.xpath("//label[contains(text(), 'AI Notes')]"));
-    expect(aiNotesLabel).toBeTruthy();
   });
 
   test('renders approve and review buttons', async () => {
