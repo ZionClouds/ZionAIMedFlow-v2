@@ -177,7 +177,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # Soaham - Testing with Smoke Test File 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v2
       - name: Run Smoke Tests
         env:
           TEST_RESULT: 1  # Control test outcome
