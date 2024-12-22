@@ -1,11 +1,39 @@
-name: Build and Test
+name: ZCS CI/CD Pipeline
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main, develop, 'feature/**', 'release/**' ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    - cron: '0 0 * * *'  # Daily security scans
 
 jobs:
+  security-scan:
+    name: Security Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Security Scan - SAST
+        uses: github/codeql-action/analyze@v2
+        with: 
+          languages: 'python,javascript'
+      
+      # - name: Dependency Security Scan
+      #   uses: snyk/actions/python@master
+      #   env:
+      #     SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+ 
+      - name: Container Security Scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs,config'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
   build-and-test:
     name: Build and Test
     runs-on: ubuntu-latest
