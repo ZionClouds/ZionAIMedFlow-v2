@@ -173,7 +173,7 @@ jobs:
   
   smoke-test:
     name: Smoke Testing
-    needs: sonarqube-analysis
+    # needs: sonarqube-analysis
     runs-on: ubuntu-latest
     steps:
       # Soaham - Testing with Smoke Test File 
@@ -186,7 +186,7 @@ jobs:
   
   performance-test:
     name: Performance Testing
-    needs: smoke-test
+    # needs: smoke-test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
