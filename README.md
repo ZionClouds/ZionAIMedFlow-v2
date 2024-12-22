@@ -63,14 +63,14 @@ The ZionAI MedFlow project template is purpose-built to deliver advanced capabil
 
 Additionally, the project includes:
 
-- Sample product and customer data for rapid prototyping, facilitating quick demonstrations and iterative development.
-- Sample datasets and custom evaluators, enabling agencies to fine-tune solutions for specific use cases.
+-  product and customer data for rapid prototyping, facilitating quick demonstrations and iterative development.
+-  datasets and custom evaluators, enabling agencies to fine-tune solutions for specific use cases.
 - Seamless integration with Azure AI Search, ensuring efficient indexing and retrieval of critical documents while maintaining compliance with federal data security standards.
 These features empower federal teams to prototype, deploy, and scale solutions rapidly, ensuring high-quality service delivery to citizens and stakeholders.
 
 ## Pre-requisites
 
-To deploy and explore the sample, you will need:
+To deploy and explore the Solution, you will need:
 
 1. An active Azure subscription - [Signup for a free account here](https://azure.microsoft.com/free/)
 1. Access to Azure OpenAI Services - [Learn about Limited Access here](https://learn.microsoft.com/legal/cognitive-services/openai/limited-access)
@@ -86,7 +86,7 @@ From a tooling perspective, familiarity with the following is useful:
  - Azure CLI, Azure Developer CLI and commandline usage
 
 ## Solution Deployment
-The sample illustrates the end-to-end workflow (GenAIOps) for building a RAG-based application **code-first** with Azure AI. By exploring and deploying this sample, you will learn to:
+The Solution illustrates the end-to-end workflow (GenAIOps) for building a RAG-based application **code-first** with Azure AI. By exploring and deploying this Product, you will need to:
 
 1. Deploy and use [Azure OpenAI](https://learn.microsoft.com/azure/ai-services/openai/) models for chat, embeddings and evaluation
 1. Host the application as a FastAPI endpoint deployed to Azure Container Apps
@@ -145,7 +145,7 @@ Follow these steps to provision Azure resources and deploy the application code:
     This will create a new folder in the `.azure` folder, and set it as the active environment for any calls to `azd` going forward.
 1. (Optional) This is the point where you can customize the deployment by setting environment variables, in order to [use existing resources](docs/deploy_existing.md), [enable optional features (such as auth or vision)](docs/deploy_features.md), or [deploy to free tiers](docs/deploy_lowcost.md).
 
-1. Run `azd up` - This will provision Azure resources and deploy this sample to those resources, including building the search index based on the files found in the `./data` folder.
+1. Run `azd up` - This will provision Azure resources and deploy this solution to those resources, including building the search index based on the files found in the `./data` folder.
     - **Important**: Beware that the resources created by this command will incur immediate costs, primarily from the AI Search resource. These resources may accrue costs even if you interrupt the command before it is fully executed. You can run `azd down` or delete the resources manually to avoid unnecessary spending.
     - You will be prompted to select two locations, one for the majority of resources and one for the OpenAI resource, which is currently a short list. That location list is based on the [OpenAI model availability table](https://learn.microsoft.com/azure/cognitive-services/openai/concepts/models#model-summary-table-and-region-availability) and may become outdated as availability changes.
 
@@ -197,7 +197,7 @@ Follow these steps to provision Azure resources and deploy the application code:
     This will create a new folder in the `.azure` folder, and set it as the active environment for any calls to `azd` going forward.
 1. (Optional) This is the point where you can customize the deployment by setting environment variables, in order to [use existing resources](docs/deploy_existing.md), [enable optional features (such as auth or vision)](docs/deploy_features.md), or [deploy to free tiers](docs/deploy_lowcost.md).
 
-1. Run `azd up` - This will provision Azure resources and deploy this sample to those resources, including building the search index based on the files found in the `./data` folder.
+1. Run `azd up` - This will provision Azure resources and deploy this Solution to those resources, including building the search index based on the files found in the `./data` folder.
     - **Important**: Beware that the resources created by this command will incur immediate costs, primarily from the AI Search resource. These resources may accrue costs even if you interrupt the command before it is fully executed. You can run `azd down` or delete the resources manually to avoid unnecessary spending.
     - You will be prompted to select two locations, one for the majority of resources and one for the OpenAI resource, which is currently a short list. That location list is based on the [OpenAI model availability table](https://learn.microsoft.com/azure/cognitive-services/openai/concepts/models#model-summary-table-and-region-availability) and may become outdated as availability changes.
 
