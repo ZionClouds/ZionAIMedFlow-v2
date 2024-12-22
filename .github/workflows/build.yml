@@ -157,8 +157,13 @@ jobs:
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
       with:
           args: >
+              -Dsonar.projectKey=ZionAIMedFlow-v2
+              -Dsonar.organization=ZCS
+              -Dsonar.sources=.
+              -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }}
+              -Dsonar.login=${{ secrets.SONAR_TOKEN }}
               -Dsonar.python.coverage.reportPaths=coverage.xml
-      
+
       # Optional: Quality Gate Check
       # Uncomment this section if you want the job to fail when the SonarQube Quality Gate fails
       # - name: SonarQube Quality Gate
