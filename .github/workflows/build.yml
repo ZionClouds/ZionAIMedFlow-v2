@@ -181,6 +181,7 @@ jobs:
       env:
         TEST_RESULT: 1  # Control test outcome
       run: |
+        cd ..
         pwd
         ls -la
         chmod +x /scripts/smoke-tests.sh
