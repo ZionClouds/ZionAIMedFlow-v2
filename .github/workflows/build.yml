@@ -176,8 +176,9 @@ jobs:
     # needs: sonarqube-analysis
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
       # Soaham - Testing with Smoke Test File 
-      - uses: actions/checkout@v2
       - name: Run Smoke Tests
         env:
           TEST_RESULT: 1  # Control test outcome
