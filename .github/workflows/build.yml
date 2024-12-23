@@ -244,7 +244,7 @@ jobs:
         run: |
           AUTH=$(echo -n "${{ secrets.JIRA_USERNAME }}:${{ secrets.JIRA_API_TOKEN }}" | base64)
           echo "Authorization: Basic $AUTH"
-          curl -X POST -H "Authorization: Basic $AUTH" \
+          curl -v -X POST -H "Authorization: Basic $AUTH" \
           -H "Content-Type: application/json" \
           --data '{
             "fields": {
