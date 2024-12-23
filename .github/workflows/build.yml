@@ -247,7 +247,7 @@ jobs:
           --data '{
             "fields": {
               "project": {
-                "key": "YOUR_PROJECT_KEY"
+                "key": "ZMED"
               },
               "summary": "Deployment Status",
               "description": "The deployment for the repository `${{ github.repository }}` has completed.\n\n- **Branch**: `${{ github.ref_name }}`\n- **Commit**: `${{ github.sha }}`\n- **Actor**: `${{ github.actor }}`\n- **Workflow**: `${{ github.workflow }}`\n- **Job**: `${{ github.job }}`\n- **Run ID**: `${{ github.run_id }}`\n- **Run Number**: `${{ github.run_number }}`",
