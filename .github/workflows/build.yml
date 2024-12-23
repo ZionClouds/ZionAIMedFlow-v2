@@ -223,4 +223,18 @@ jobs:
         with:
           webhook_uri: ${{ secrets.TEAMS_WEBHOOK }}
           title: Deployment Status
-          summary: Pipeline completed for ${{ github.repository }}
+          summary: |
+            The deployment for the repository `${{ github.repository }}` has completed.
+            - **Branch**: `${{ github.ref_name }}`
+            - **Commit**: `${{ github.sha }}`
+            - **Actor**: `${{ github.actor }}`
+          text: |
+            The deployment process has finished. Please check the details below:
+            - **Repository**: `${{ github.repository }}`
+            - **Branch**: `${{ github.ref_name }}`
+            - **Commit**: `${{ github.sha }}`
+            - **Actor**: `${{ github.actor }}`
+            - **Workflow**: `${{ github.workflow }}`
+            - **Job**: `${{ github.job }}`
+            - **Run ID**: `${{ github.run_id }}`
+            - **Run Number**: `${{ github.run_number }}`
