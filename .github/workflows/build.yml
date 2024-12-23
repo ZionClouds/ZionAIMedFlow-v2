@@ -215,7 +215,7 @@ jobs:
       
   notify:
     name: Notify Status
-    needs: performance-test
+    # needs: performance-test
     runs-on: ubuntu-latest
     if: always()
     steps:
@@ -239,3 +239,24 @@ jobs:
             - **Job**: `${{ github.job }}`
             - **Run ID**: `${{ github.run_id }}`
             - **Run Number**: `${{ github.run_number }}`
+
+      - name: Send JIRA Notification
+        run: |
+          curl -X POST -H "Authorization: Basic $(echo -n ${{ secrets.JIRA_USERNAME }}:${{ secrets.JIRA_API_TOKEN }} | base64)" \
+          -H "Content-Type: application/json" \
+          --data '{
+            "fields": {
+              "project": {
+                "key": "YOUR_PROJECT_KEY"
+              },
+              "summary": "Deployment Status",
+              "description": "The deployment for the repository `${{ github.repository }}` has completed.\n\n- **Branch**: `${{ github.ref_name }}`\n- **Commit**: `${{ github.sha }}`\n- **Actor**: `${{ github.actor }}`\n- **Workflow**: `${{ github.workflow }}`\n- **Job**: `${{ github.job }}`\n- **Run ID**: `${{ github.run_id }}`\n- **Run Number**: `${{ github.run_number }}`",
+              "issuetype": {
+                "name": "Task"
+              }
+            }
+          }' \
+          https://your-domain.atlassian.net/rest/api/2/issue/
+        env:
+          JIRA_USERNAME: ${{ secrets.JIRA_USERNAME }}
+          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
