@@ -240,27 +240,100 @@ jobs:
             - **Run ID**: `${{ github.run_id }}`
             - **Run Number**: `${{ github.run_number }}`
 
-      - name: Send JIRA Notification
+      - name: Send Jira Notification
         run: |
-          AUTH=$(echo -n "${{ secrets.JIRA_USERNAME }}:${{ secrets.JIRA_API_TOKEN }}" | base64)
-          echo "Authorization: Basic $AUTH"
-          JSON_PAYLOAD=$(jq -n --arg repo "${{ github.repository }}" --arg branch "${{ github.ref_name }}" --arg commit "${{ github.sha }}" --arg actor "${{ github.actor }}" --arg workflow "${{ github.workflow }}" --arg job "${{ github.job }}" --arg run_id "${{ github.run_id }}" --arg run_number "${{ github.run_number }}" '{
-            fields: {
-              project: {
-                key: "ZMED"
-              },
-          summary: "Deployment Status",
-          description: "The deployment for the repository \($repo) has completed.\n\n- **Branch**: \($branch)\n- **Commit**: \($commit)\n- **Actor**: \($actor)\n- **Workflow**: \($workflow)\n- **Job**: \($job)\n- **Run ID**: \($run_id)\n- **Run Number**: \($run_number)",
-              issuetype: {
-                name: "Task"
-              }
-            }
-          }')
-          echo "JSON Payload: $JSON_PAYLOAD"
-          curl -v -X POST -H "Authorization: Basic $AUTH" \
-          -H "Content-Type: application/json" \
-          --data "$JSON_PAYLOAD" \
-          https://zionclouds.atlassian.net/rest/api/2/issue/
-        env:
-          JIRA_USERNAME: ${{ secrets.JIRA_USERNAME }}
-          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+              curl --request POST \
+                --url "https://zionclouds.atlassian.net/rest/api/3/issue" \
+                --user "${{ secrets.JIRA_USERNAME }}:${{ secrets.JIRA_API_TOKEN }}" \
+                --header "Accept: application/json" \
+                --header "Content-Type: application/json" \
+                --data "{
+                  \"fields\": {
+                    \"project\": {
+                      \"key\": \"ZMED\"
+                    },
+                    \"summary\": \"Deployment Status\",
+                    \"description\": {
+                      \"type\": \"doc\",
+                      \"version\": 1,
+                      \"content\": [
+                        {
+                          \"type\": \"paragraph\",
+                          \"content\": [
+                            {
+                              \"type\": \"text\",
+                              \"text\": \"The deployment for the repository ${{ github.repository }} has completed.\"
+                            }
+                          ]
+                        },
+                        {
+                          \"type\": \"paragraph\",
+                          \"content\": [
+                            {
+                              \"type\": \"text\",
+                              \"text\": \"Branch: ${{ github.ref_name }}\"
+                            }
+                          ]
+                        },
+                        {
+                          \"type\": \"paragraph\",
+                          \"content\": [
+                            {
+                              \"type\": \"text\",
+                              \"text\": \"Commit: ${{ github.sha }}\"
+                            }
+                          ]
+                        },
+                        {
+                          \"type\": \"paragraph\",
+                          \"content\": [
+                            {
+                              \"type\": \"text\",
+                              \"text\": \"Actor: ${{ github.actor }}\"
+                            }
+                          ]
+                        },
+                        {
+                          \"type\": \"paragraph\",
+                          \"content\": [
+                            {
+                              \"type\": \"text\",
+                              \"text\": \"Workflow: ${{ github.workflow }}\"
+                            }
+                          ]
+                        },
+                        {
+                          \"type\": \"paragraph\",
+                          \"content\": [
+                            {
+                              \"type\": \"text\",
+                              \"text\": \"Job: ${{ github.job }}\"
+                            }
+                          ]
+                        },
+                        {
+                          \"type\": \"paragraph\",
+                          \"content\": [
+                            {
+                              \"type\": \"text\",
+                              \"text\": \"Run ID: ${{ github.run_id }}\"
+                            }
+                          ]
+                        },
+                        {
+                          \"type\": \"paragraph\",
+                          \"content\": [
+                            {
+                              \"type\": \"text\",
+                              \"text\": \"Run Number: ${{ github.run_number }}\"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    \"issuetype\": {
+                      \"name\": \"Task\"
+                    }
+                  }
+                }"
+          
