@@ -242,8 +242,8 @@ jobs:
 
       - name: Send JIRA Notification
         run: |
-          curl -X POST -H "Authorization: Basic $(echo -n ${{ secrets.JIRA_USERNAME }}:${{ secrets.JIRA_API_TOKEN }} | base64)" \
-          -H "Content-Type: application/json" \
+          AUTH=$(echo -n "${{ secrets.JIRA_USERNAME }}:${{ secrets.JIRA_API_TOKEN }}" | base64)
+          curl -X POST -H "Authorization: Basic $AUTH" \
           --data '{
             "fields": {
               "project": {
