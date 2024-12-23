@@ -244,20 +244,22 @@ jobs:
         run: |
           AUTH=$(echo -n "${{ secrets.JIRA_USERNAME }}:${{ secrets.JIRA_API_TOKEN }}" | base64)
           echo "Authorization: Basic $AUTH"
-          curl -v -X POST -H "Authorization: Basic $AUTH" \
-          -H "Content-Type: application/json" \
-          --data '{
-            "fields": {
-              "project": {
-                "key": "ZMED"
+          JSON_PAYLOAD=$(jq -n --arg repo "${{ github.repository }}" --arg branch "${{ github.ref_name }}" --arg commit "${{ github.sha }}" --arg actor "${{ github.actor }}" --arg workflow "${{ github.workflow }}" --arg job "${{ github.job }}" --arg run_id "${{ github.run_id }}" --arg run_number "${{ github.run_number }}" '{
+            fields: {
+              project: {
+                key: "ZMED"
               },
-              "summary": "Deployment Status",
-              "description": "The deployment for the repository `${{ github.repository }}` has completed.\n\n- **Branch**: `${{ github.ref_name }}`\n- **Commit**: `${{ github.sha }}`\n- **Actor**: `${{ github.actor }}`\n- **Workflow**: `${{ github.workflow }}`\n- **Job**: `${{ github.job }}`\n- **Run ID**: `${{ github.run_id }}`\n- **Run Number**: `${{ github.run_number }}`",
-              "issuetype": {
-                "name": "Task"
+          summary: "Deployment Status",
+          description: "The deployment for the repository \($repo) has completed.\n\n- **Branch**: \($branch)\n- **Commit**: \($commit)\n- **Actor**: \($actor)\n- **Workflow**: \($workflow)\n- **Job**: \($job)\n- **Run ID**: \($run_id)\n- **Run Number**: \($run_number)",
+              issuetype: {
+                name: "Task"
               }
             }
-          }' \
+          }')
+          echo "JSON Payload: $JSON_PAYLOAD"
+          curl -v -X POST -H "Authorization: Basic $AUTH" \
+          -H "Content-Type: application/json" \
+          --data "$JSON_PAYLOAD" \
           https://zionclouds.atlassian.net/rest/api/2/issue/
         env:
           JIRA_USERNAME: ${{ secrets.JIRA_USERNAME }}
