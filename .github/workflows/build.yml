@@ -215,6 +215,7 @@ jobs:
       
   notify:
     name: Notify Status
+    needs: performance-test
     runs-on: ubuntu-latest
     if: always()
     steps:
