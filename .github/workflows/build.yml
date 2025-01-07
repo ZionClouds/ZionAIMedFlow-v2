@@ -149,20 +149,23 @@ jobs:
     needs: selenium-test
     runs-on: ubuntu-latest
     steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
     # Step 6: Run SonarQube Analysis
     - name: Run SonarQube Analysis
       uses: sonarsource/sonarqube-scan-action@master
       env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-      with:
-          args: >
-              -Dsonar.projectKey=ZionAIMedFlow-v2
-              -Dsonar.organization=ZCS
-              -Dsonar.sources=src
-              -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }}
-              -Dsonar.login=${{ secrets.SONAR_TOKEN }}
-              -Dsonar.python.coverage.reportPaths=coverage.xml
+      # with:
+      #     args: >
+      #         -Dsonar.projectKey=ZionAIMedFlow-v2
+      #         -Dsonar.organization=ZCS
+      #         -Dsonar.sources=src
+      #         -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }}
+      #         -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+      #         -Dsonar.python.coverage.reportPaths=coverage.xml
 
       # Optional: Quality Gate Check
       # Uncomment this section if you want the job to fail when the SonarQube Quality Gate fails
