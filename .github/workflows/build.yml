@@ -159,7 +159,7 @@ jobs:
           args: >
               -Dsonar.projectKey=ZionAIMedFlow-v2
               -Dsonar.organization=ZCS
-              -Dsonar.sources=.
+              -Dsonar.sources=src
               -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }}
               -Dsonar.login=${{ secrets.SONAR_TOKEN }}
               -Dsonar.python.coverage.reportPaths=coverage.xml
