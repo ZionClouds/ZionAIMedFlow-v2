@@ -117,6 +117,7 @@ jobs:
         env:
           PYTHONPATH: src  # Add src to PYTHONPATH
         run: |
+          pip install pytest pytest-cov
           pytest tests/ --cov=src --cov-report=xml --junitxml=test-results.xml
         continue-on-error: true  # Continue even if this step fails
 
@@ -142,6 +143,7 @@ jobs:
       - name: Run Selenium Tests
         continue-on-error: true  # Continue even if this step fails
         run: |
+          pip install selenium webdriver-manager
           pytest tests/selenium_tests/
     
   sonarqube-analysis:
